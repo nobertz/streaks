@@ -8,34 +8,6 @@
 <meta name="apple-mobile-web-app-title" content="Streaks">
 <title>Streaks</title>
 <link rel="apple-touch-icon" href="https://nobertz.github.io/streaks/icon.png">
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      const swCode = `
-        const CACHE = 'streaks-v1';
-        const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap';
-        self.addEventListener('install', e => {
-          e.waitUntil(caches.open(CACHE).then(cache => cache.addAll([FONT_URL]).catch(()=>{})).then(()=>self.skipWaiting()));
-        });
-        self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
-        self.addEventListener('fetch', e => {
-          e.respondWith(caches.match(e.request).then(cached => {
-            if (cached) return cached;
-            return fetch(e.request).then(response => {
-              if (response && response.status === 200) {
-                const clone = response.clone();
-                caches.open(CACHE).then(cache => cache.put(e.request, clone));
-              }
-              return response;
-            }).catch(() => cached);
-          }));
-        });
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
-    });
-  }
-</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -65,7 +37,8 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
   input, textarea { -webkit-user-select: text; user-select: text; }
 
-  html, body { overscroll-behavior: none; }
+  html { overscroll-behavior: none; overflow-x: hidden; }
+  body { overscroll-behavior: none; }
 
   body {
     background: var(--bg);
@@ -76,7 +49,6 @@
     max-width: 430px;
     margin: 0 auto;
     position: relative;
-    overflow-x: hidden;
     padding-bottom: 30px;
   }
 
@@ -105,12 +77,12 @@
 
   /* ── HEADER ────────────────────────────────────────── */
   .header {
-    padding: 56px 22px 16px;
+    padding: calc(56px + env(safe-area-inset-top, 0px)) 22px 16px;
+    margin-top: calc(-1 * env(safe-area-inset-top, 0px));
     position: sticky;
     top: 0;
-    background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 80%, transparent 100%);
+    background: var(--bg);
     z-index: 10;
-    backdrop-filter: blur(8px);
   }
 
   .header-top {
@@ -619,8 +591,8 @@
   }
   .streak-big-label {
     font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 500;
+    color: var(--text);
+    font-weight: 800;
     margin-top: 1px;
   }
 
@@ -1350,6 +1322,139 @@
     box-shadow: 0 2px 8px rgba(168,85,247,0.3);
   }
 
+  /* ── COMPACT (collapsed) HABIT GRID ──────────────── */
+  .compact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+  .compact-chip {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    padding: 8px 8px 8px 9px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    min-height: 50px;
+    transition: transform 0.12s, border-color 0.2s;
+    animation: fadeSlideIn 0.25s ease both;
+  }
+  .compact-chip:active { transform: scale(0.96); }
+  .compact-flame {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.25s, box-shadow 0.25s;
+  }
+  .compact-text { min-width: 0; flex: 1; }
+  .compact-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--text);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+  .compact-sub {
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .view-toggle-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .view-toggle-btn:active { color: var(--pink); border-color: var(--pink); }
+
+  /* ── STAT BOXES (2x2) ────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    margin-bottom: 13px;
+  }
+  .stats-grid .stat-box { padding: 7px 6px; }
+  .stats-grid .stat-label {
+    font-size: 8px;
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stats-grid .stat-value {
+    font-size: 15px;
+    letter-spacing: -0.4px;
+    white-space: nowrap;
+  }
+  .stat-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .stat-den {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0;
+  }
+  .stat-chip {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .stat-sub {
+    font-size: 8px;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-top: 2px;
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── HABIT DESCRIPTION ───────────────────────────── */
+  .habit-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    padding: 2px 0 2px 10px;
+    margin-bottom: 13px;
+    border-left: 2px solid var(--border);
+  }
+
+  .chart-empty {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 16px 10px;
+    background: var(--surface2);
+    border: 1px dashed var(--border-soft);
+    border-radius: var(--radius-sm);
+    line-height: 1.5;
+  }
+
 </style>
 </head>
 <body>
@@ -1713,7 +1818,7 @@ function switchTab(tab, fromSwipe = false) {
     }
   });
   currentTab = tab;
-  render();
+  render({ jumpToTop: true });
   // Scroll to top on tab change
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1759,12 +1864,37 @@ function switchTab(tab, fromSwipe = false) {
 /* ─────────────────────────────────────────────────────
    RENDER
    ───────────────────────────────────────────────────── */
-function render() {
-  if (currentTab === 'streaks') {
-    renderStreaks();
-  } else {
-    renderGoalTab(currentTab);
-  }
+/* Re-rendering replaces innerHTML wholesale, which drops the scroll position.
+   Capture it before and restore after so adding an item deep in a long list
+   (especially inside a folder) doesn't fling you to the bottom of the page. */
+function withScrollPreserved(fn) {
+  const y = window.scrollY;
+  fn();
+  if (Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+  requestAnimationFrame(() => {
+    if (Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+  });
+}
+
+/* Remember where the page was when a modal opened, so focusing an input
+   (which iOS scrolls to) doesn't leave the page somewhere else on close. */
+let modalScrollY = null;
+function lockScroll() { if (modalScrollY === null) modalScrollY = window.scrollY; }
+function unlockScroll() {
+  if (modalScrollY === null) return;
+  const y = modalScrollY;
+  modalScrollY = null;
+  requestAnimationFrame(() => window.scrollTo(0, y));
+}
+
+function render(opts) {
+  const jumpToTop = opts && opts.jumpToTop;
+  const draw = () => {
+    if (currentTab === 'streaks') renderStreaks({ raw: true });
+    else renderGoalTab(currentTab);
+  };
+  if (jumpToTop) draw();
+  else withScrollPreserved(draw);
 }
 
 function renderGoalTab(tab) {
@@ -1979,7 +2109,7 @@ function openItemModal(tab, sectionId) {
   const dateRow = document.getElementById('itemModalDateRow');
   dateRow.classList.toggle('visible', section.type === 'tasks');
   document.getElementById('itemModalDateInput').value = '';
-  document.getElementById('itemModal').classList.add('open');
+  lockScroll(); document.getElementById('itemModal').classList.add('open');
   setTimeout(() => document.getElementById('itemModalInput').focus(), 320);
 }
 
@@ -1992,7 +2122,7 @@ function openEditItemModal(tab, sectionId, itemId) {
   const dateRow = document.getElementById('itemModalDateRow');
   dateRow.classList.toggle('visible', section.type === 'tasks');
   document.getElementById('itemModalDateInput').value = item.deadline || '';
-  document.getElementById('itemModal').classList.add('open');
+  lockScroll(); document.getElementById('itemModal').classList.add('open');
   setTimeout(() => document.getElementById('itemModalInput').focus(), 320);
 }
 
@@ -2001,6 +2131,9 @@ function closeItemModal() {
   itemModalCtx = null;
   folderItemModalCtx = null;
   folderItemSaveOverride = false;
+  habitSaveOverride = false;
+  habitModalCtx = null;
+  unlockScroll();
   // Clean up yesterday modal if open
   const row = document.getElementById('yesterdayLevelRow');
   if (row) { row.style.display = 'none'; row.innerHTML = ''; }
@@ -2034,6 +2167,8 @@ function saveItem() {
     }
     const text = document.getElementById('itemModalInput').value.trim();
     if (!text) return;
+    const descEl = document.getElementById('habitDescInput');
+    const habitDesc = (descEl ? descEl.value : (habitModalCtx.habitDescription || '')).trim();
     if (habitModalCtx.mode === 'add') {
       const customMode = habitModalCtx.habitCustomMode || 'count';
       const resolvedFreq = habitModalCtx.habitFrequency === 'custom' && customMode === 'days' ? 'weekly' : habitModalCtx.habitFrequency || 'daily';
@@ -2043,6 +2178,7 @@ function saveItem() {
         type: habitModalCtx.habitType || 'binary',
         color: habitModalCtx.habitColor || 'coral',
         frequency: resolvedFreq,
+        description: habitDesc,
         history: [],
         created: todayStr()
       };
@@ -2053,6 +2189,7 @@ function saveItem() {
       const h = data.streaks.habits.find(x => x.id === habitModalCtx.habitId);
       if (h) {
         if (text) h.name = text;
+        if (habitDesc) h.description = habitDesc; else delete h.description;
         h.color = habitModalCtx.habitColor || h.color;
         const oldType = h.type;
         const newType = habitModalCtx.habitType || h.type;
@@ -2172,7 +2309,8 @@ function editItemFromAction() {
         habitFrequency: uiFreq,
         habitCustomMode: customMode,
         habitRequiredDays: habit.requiredDays ? [...habit.requiredDays] : [1,2,3,4,5],
-        habitRequiredCount: habit.requiredCount || 3
+        habitRequiredCount: habit.requiredCount || 3,
+        habitDescription: habit.description || ''
       };
       habitSaveOverride = true;
       document.getElementById('itemModalTitle').textContent = 'Edit habit';
@@ -2191,7 +2329,7 @@ function editItemFromAction() {
       }
       renderHabitExtras(extras);
       extras.style.display = 'block';
-      document.getElementById('itemModal').classList.add('open');
+      lockScroll(); document.getElementById('itemModal').classList.add('open');
       setTimeout(() => { const inp = document.getElementById('itemModalInput'); inp.focus(); inp.select(); }, 320);
     }, 200);
     return;
@@ -2263,7 +2401,7 @@ function renameSectionFromAction() {
       if (typeRowEl) typeRowEl.style.display = 'none';
       const typeHintEl = document.getElementById('sectionTypeHint');
       if (typeHintEl) typeHintEl.style.display = 'none';
-      document.getElementById('sectionEditModal').classList.add('open');
+      lockScroll(); document.getElementById('sectionEditModal').classList.add('open');
       setTimeout(() => {
         const inp = document.getElementById('sectionEditInput');
         inp.focus(); inp.select();
@@ -2282,7 +2420,7 @@ function renameSectionFromAction() {
     if (typeRowEl) typeRowEl.style.display = 'none';
     const typeHintEl = document.getElementById('sectionTypeHint');
     if (typeHintEl) typeHintEl.style.display = 'none';
-    document.getElementById('sectionEditModal').classList.add('open');
+    lockScroll(); document.getElementById('sectionEditModal').classList.add('open');
     setTimeout(() => {
       const inp = document.getElementById('sectionEditInput');
       inp.focus(); inp.select();
@@ -2295,6 +2433,7 @@ function openNewSection(tab) {
   document.getElementById('sectionEditTitle').textContent = 'New section';
   document.getElementById('sectionEditInput').value = '';
   document.querySelectorAll('.type-pick-btn').forEach(b => {
+    b.style.display = '';  // restore Folder option (hidden by openNewFolderSection)
     const isActive = b.dataset.type === 'tasks';
     b.classList.toggle('active', isActive);
     b.style.background = isActive ? 'rgba(255,77,126,0.12)' : 'var(--surface2)';
@@ -2305,12 +2444,13 @@ function openNewSection(tab) {
   if (typeRow) typeRow.style.display = 'flex';
   const typeHint = document.getElementById('sectionTypeHint');
   if (typeHint) typeHint.style.display = 'none';
-  document.getElementById('sectionEditModal').classList.add('open');
+  lockScroll(); document.getElementById('sectionEditModal').classList.add('open');
   setTimeout(() => document.getElementById('sectionEditInput').focus(), 320);
 }
 
 function closeSectionEdit() {
   document.getElementById('sectionEditModal').classList.remove('open');
+  unlockScroll();
   const extras = document.getElementById('folderPickerExtras');
   if (extras) extras.style.display = 'none';
   sectionEditCtx = null;
@@ -2891,7 +3031,7 @@ function openFolderEdit() {
     if (typeHintEl) typeHintEl.style.display = 'none';
     const extras = document.getElementById('folderPickerExtras');
     if (extras) { extras.style.display = 'block'; feRenderFolderPickers(); }
-    document.getElementById('sectionEditModal').classList.add('open');
+    lockScroll(); document.getElementById('sectionEditModal').classList.add('open');
     setTimeout(() => { const inp = document.getElementById('sectionEditInput'); inp.focus(); inp.select(); }, 320);
   }, 200);
 }
@@ -3038,6 +3178,168 @@ function isHabitDoneToday(habit) {
 // Is yesterday logged (level > 0)?
 function isHabitDoneYesterday(habit) {
   return habitLevel(habit, dateStr(addDays(new Date(), -1))) > 0;
+}
+
+/* ─────────────────────────────────────────────────────
+   HABIT ANALYTICS — shared helpers
+
+   All progress numbers are built from three ideas:
+     1. A habit is only measured from the day it was created.
+     2. "Expected" completions depend on the habit's own target
+        (every day / N per week / specific weekdays), so a 3x-per-week
+        habit and a daily habit are both at 100% when they hit target.
+     3. Today is left out of the denominator until it's actually logged,
+        so numbers don't sag every morning and recover every night.
+   ───────────────────────────────────────────────────── */
+
+// One pass over history -> Set of completed date strings. Avoids repeated
+// O(n) scans when the analytics loops touch hundreds of days.
+function historySet(habit) {
+  const set = new Set();
+  (habit.history || []).forEach(e => {
+    if (habit.type === 'gradient') { if (e && e.level > 0) set.add(e.date); }
+    else if (e) set.add(e);
+  });
+  return set;
+}
+
+function habitStart(habit) {
+  if (!habit.created) return null;
+  const d = new Date(habit.created + 'T00:00:00');
+  return isNaN(d) ? null : d;
+}
+
+function isRequiredDow(habit, dow) {
+  if ((habit.frequency || 'daily') !== 'weekly') return true;
+  return (habit.requiredDays || [0,1,2,3,4,5,6]).includes(dow);
+}
+
+/* Completions vs. expected over an inclusive date range, clamped to the
+   habit's creation date. Returns { done, expected }. */
+function windowStats(habit, hs, start, end) {
+  const created = habitStart(habit);
+  let s = new Date(start); s.setHours(0,0,0,0);
+  if (created && s < created) s = new Date(created);
+  const e = new Date(end); e.setHours(0,0,0,0);
+  if (e < s) return { done: 0, expected: 0, days: 0 };
+
+  const freq = habit.frequency || 'daily';
+  let done = 0, expected = 0, days = 0;
+  for (let d = new Date(s); d <= e; d = addDays(d, 1)) {
+    days++;
+    const hit = hs.has(dateStr(d));
+    if (freq === 'weekly') {
+      // Only the weekdays you committed to count, either way.
+      if (isRequiredDow(habit, d.getDay())) { expected++; if (hit) done++; }
+    } else if (hit) done++;
+  }
+  if (freq === 'daily') expected = days;
+  else if (freq === 'custom') expected = (days / 7) * (habit.requiredCount || 1);
+  return { done, expected, days };
+}
+
+function rateOf(st) {
+  return st.expected > 0 ? Math.min(1, st.done / st.expected) : 0;
+}
+
+// Last day that should count toward stats: today if logged, else yesterday.
+function statsEndDate(habit, hs, today) {
+  return hs.has(dateStr(today)) ? new Date(today) : addDays(today, -1);
+}
+
+/* Flame state:
+     'bright' — this period's requirement is met (locked for the rest of the week)
+     'dim'    — logged today, but the week's requirement isn't met yet
+     'off'    — nothing logged today and requirement unmet
+   Gradient habits are treated as binary here: the flame tracks whether the day
+   was completed, not how well. */
+function habitFlameState(habit) {
+  const freq = habit.frequency || 'daily';
+  if (freq === 'daily') return isHabitDoneToday(habit) ? 'bright' : 'off';
+  if (isWeekComplete(habit, getWeekSunday(new Date()))) return 'bright';
+  return isHabitDoneToday(habit) ? 'dim' : 'off';
+}
+
+function flameBoxStyle(state, col) {
+  if (state === 'bright') return `background:linear-gradient(135deg, ${col}, ${darkenHex(col, 35)});box-shadow:0 4px 14px ${col}66`;
+  if (state === 'dim') return `background:${col}24;box-shadow:inset 0 0 0 1.5px ${col}59`;
+  return 'background:var(--surface2)';
+}
+
+function flameFill(state, col) {
+  if (state === 'bright') return '#fff';
+  if (state === 'dim') return col;
+  return 'rgba(255,255,255,0.2)';
+}
+
+function flameSvg(fill, size) {
+  return `<svg viewBox="0 0 24 24" fill="${fill}" stroke="none" xmlns="http://www.w3.org/2000/svg" style="width:${size}px;height:${size}px">
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+    </svg>`;
+}
+
+/* Week-based progress for weekly/custom habits: how far into this week's
+   requirement you are, counting only days that have already happened. */
+function weekProgress(habit, today) {
+  const ws = getWeekSunday(today);
+  const freq = habit.frequency || 'daily';
+  if (freq === 'custom') {
+    const need = habit.requiredCount || 1;
+    let done = 0;
+    for (let d = 0; d < 7; d++) {
+      const day = addDays(ws, d);
+      if (day > today) break;
+      if (habitLevel(habit, dateStr(day)) > 0) done++;
+    }
+    return { done, need, elapsedNeed: need };
+  }
+  const required = habit.requiredDays || [];
+  let done = 0, elapsed = 0;
+  for (const dow of required) {
+    const day = addDays(ws, dow);
+    if (day > today) continue;
+    elapsed++;
+    if (habitLevel(habit, dateStr(day)) > 0) done++;
+  }
+  return { done, need: required.length, elapsedNeed: elapsed };
+}
+
+// Completed weeks out of the last N fully-elapsed weeks, clamped to creation.
+function recentWeeksStats(habit, today, n) {
+  const created = habitStart(habit);
+  const thisWeekSun = getWeekSunday(today);
+  let done = 0, total = 0;
+  for (let w = 1; w <= n; w++) {
+    const ws = addDays(thisWeekSun, -w * 7);
+    if (created && addDays(ws, 6) < created) break;
+    total++;
+    if (isWeekComplete(habit, ws)) done++;
+  }
+  // Give credit for the current week the moment it's complete.
+  if (isWeekComplete(habit, thisWeekSun)) { done++; total++; }
+  return { done, total };
+}
+
+function allTimeWeeksStats(habit, today) {
+  const created = habitStart(habit) || addDays(today, -7);
+  const thisWeekSun = getWeekSunday(today);
+  const firstWeekSun = getWeekSunday(created);
+  const spanWeeks = Math.max(0, Math.round((thisWeekSun - firstWeekSun) / (7 * 86400000)));
+  let done = 0, total = 0;
+  for (let w = spanWeeks; w >= 1; w--) {
+    total++;
+    if (isWeekComplete(habit, addDays(thisWeekSun, -w * 7))) done++;
+  }
+  if (isWeekComplete(habit, thisWeekSun)) { done++; total++; }
+  return { done, total };
+}
+
+// Small ↑/↓ chip comparing two rates, in percentage points.
+function trendChip(currentRate, priorRate) {
+  const diff = Math.round(currentRate * 100) - Math.round(priorRate * 100);
+  if (diff === 0) return `<span class="stat-chip" style="color:var(--text-dim)">→</span>`;
+  const up = diff > 0;
+  return `<span class="stat-chip" style="color:${up ? '#22c55e' : '#ef4444'}">${up ? '↑' : '↓'}${Math.abs(diff)}</span>`;
 }
 
 function getWeekSunday(d) {
@@ -3208,35 +3510,102 @@ function getTotalCompletions(habit) {
    ───────────────────────────────────────────────────── */
 const expandedHabits = new Set();
 
-function renderStreaks() {
-  const page = document.getElementById('page-streaks');
-  const habits = data.streaks.habits;
-  let html = `
-    <div class="section-block">
-      <div class="section-header-row">
-        <div class="section-label-wrap">
-          <div class="section-label">Daily streaks</div>
+// Compact view collapses every habit into a two-column grid of chips so the
+// whole list is visible at a glance. Always starts expanded on app open.
+let compactMode = false;
+
+function toggleCompactMode() {
+  compactMode = !compactMode;
+  renderStreaks();
+}
+
+function renderStreaks(opts) {
+  const draw = () => {
+    const page = document.getElementById('page-streaks');
+    const habits = data.streaks.habits;
+
+    const body = habits.length === 0
+      ? `<div class="empty">No habits yet.<br>Add one to start a streak.</div>`
+      : compactMode
+        ? `<div class="compact-grid">${habits.map(h => renderCompactChip(h)).join('')}</div>`
+        : `<div style="display:flex;flex-direction:column;gap:0">${habits.map(h => renderStreakCard(h)).join('')}</div>`;
+
+    page.innerHTML = `
+      <div class="section-block">
+        <div class="section-header-row">
+          <div class="section-label-wrap">
+            <div class="section-label">Daily streaks</div>
+          </div>
+          ${habits.length ? `<div class="section-actions">
+            <button class="view-toggle-btn" onclick="toggleCompactMode()">${compactMode ? '▦ Cards' : '▤ Compact'}</button>
+          </div>` : ''}
         </div>
+        ${body}
+        <button class="add-btn" onclick="openAddHabit()">＋ Add daily habit</button>
       </div>
-      <div style="display:flex;flex-direction:column;gap:0">
-        ${habits.map(h => renderStreakCard(h)).join('')}
+    `;
+
+    if (!compactMode) {
+      // Restore expanded state
+      expandedHabits.forEach(id => {
+        const card = page.querySelector(`.streak-card[data-habit-id="${id}"]`);
+        if (card) card.classList.add('expanded');
+      });
+      attachStreakDragHandlers(page);
+    }
+  };
+  if (opts && opts.raw) draw();
+  else withScrollPreserved(draw);
+}
+
+function buildMiniRing(habit, col) {
+  const level = habitLevel(habit, todayStr());
+  const max = habit.type === 'binary' ? 1 : 4;
+  const frac = Math.min(1, level / max);
+  const r = 7.5, c = 2 * Math.PI * r;
+  const showNum = habit.type === 'gradient' && level > 0;
+  return `<svg viewBox="0 0 20 20" width="20" height="20" style="flex-shrink:0;overflow:visible" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="10" cy="10" r="${r}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2.5"/>
+      ${frac > 0 ? `<circle cx="10" cy="10" r="${r}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round"
+        stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${(c * (1 - frac)).toFixed(2)}"
+        transform="rotate(-90 10 10)" style="transition:stroke-dashoffset 0.25s ease"/>` : ''}
+      ${showNum ? `<text x="10" y="12.8" text-anchor="middle" font-size="8" font-weight="800" fill="${col}" font-family="Inter,sans-serif">${level}</text>` : ''}
+    </svg>`;
+}
+
+function renderCompactChip(habit) {
+  const col = habitColor(habit);
+  const state = habitFlameState(habit);
+  const streak = getCurrentStreak(habit);
+  const isWeekly = (habit.frequency || 'daily') !== 'daily';
+  const logFn = habit.type === 'binary'
+    ? `toggleBinaryToday('${habit.id}')`
+    : `cycleGradientToday('${habit.id}')`;
+
+  let sub;
+  if (isWeekly) {
+    const wp = weekProgress(habit, (() => { const t = new Date(); t.setHours(0,0,0,0); return t; })());
+    sub = `${streak} wk · ${wp.done}/${wp.need}`;
+  } else {
+    sub = `${streak} ${streak === 1 ? 'day' : 'days'}`;
+  }
+
+  return `
+    <div class="compact-chip" onclick="${logFn}" style="${state !== 'off' ? `border-color:${col}40` : ''}">
+      <div class="compact-flame" style="${flameBoxStyle(state, col)}">${flameSvg(flameFill(state, col), 16)}</div>
+      <div class="compact-text">
+        <div class="compact-name">${escHtml(habit.name)}</div>
+        <div class="compact-sub" style="color:${state === 'off' ? 'var(--text-dim)' : col}">${sub}</div>
       </div>
-      <button class="add-btn" onclick="openAddHabit()">＋ Add daily habit</button>
+      ${buildMiniRing(habit, col)}
     </div>
   `;
-  page.innerHTML = html;
-  // Restore expanded state
-  expandedHabits.forEach(id => {
-    const card = page.querySelector(`.streak-card[data-habit-id="${id}"]`);
-    if (card) card.classList.add('expanded');
-  });
-  attachStreakDragHandlers(page);
 }
 
 function renderStreakCard(habit) {
   const col = habitColor(habit);
   const streak = getCurrentStreak(habit);
-  const doneToday = isHabitDoneToday(habit);
+  const flameState = habitFlameState(habit);
   const doneYesterday = isHabitDoneYesterday(habit);
   const todayLevel = habitLevel(habit, todayStr());
 
@@ -3301,13 +3670,9 @@ function renderStreakCard(habit) {
           <div class="streak-left-col">
             <div class="streak-name">${escHtml(habit.name)}</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-              <div class="streak-flame-box" style="${doneToday
-            ? `background:linear-gradient(135deg, ${col}, ${darkenHex(col, 35)});box-shadow:0 4px 14px ${col}66`
-            : 'background:var(--surface2)'}">
-            <svg viewBox="0 0 24 24" fill="${doneToday ? '#fff' : 'rgba(255,255,255,0.2)'}" stroke="none" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px">
-              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
-            </svg>
-          </div>
+              <div class="streak-flame-box" style="${flameBoxStyle(flameState, col)}">
+                ${flameSvg(flameFill(flameState, col), 22)}
+              </div>
               <div class="streak-count-wrap">
                 <div style="display:flex;align-items:baseline;gap:5px">
                   <div class="streak-big-number" style="color:${col}">${streak}</div>
@@ -3334,7 +3699,7 @@ function renderStreakCard(habit) {
                     return `<div style="font-size:13px;font-weight:700;color:${col};opacity:0.85;line-height:1">${doneSoFar}/${need}</div>`;
                   })() : ''}
                 </div>
-                <div class="streak-big-label" style="${habit.frequency && habit.frequency !== 'daily' ? 'font-weight:800;color:var(--text)' : ''}">${habit.frequency && habit.frequency !== 'daily' ? 'weeks' : 'days'}</div>
+                <div class="streak-big-label">${habit.frequency && habit.frequency !== 'daily' ? 'weeks' : 'days'}</div>
               </div>
             </div>
           </div>
@@ -3408,55 +3773,112 @@ const HEATMAP_MONTHS = 4;
 
 function renderStreakAnalytics(habit) {
   const col = habitColor(habit);
-  const streak = getCurrentStreak(habit);
+  const hs = historySet(habit);
+  const freq = habit.frequency || 'daily';
   const longest = getLongestStreak(habit);
   const today = new Date();
   today.setHours(0,0,0,0);
   const offset = habitWindowOffset[habit.id] || 0;
 
   // Window: always full calendar months, 4 at a time.
-  // offset=0 → ends at end of current month; offset=1 → ends at end of previous 4-month block, etc.
-  const windowEndMonth = new Date(today.getFullYear(), today.getMonth() - offset * HEATMAP_MONTHS + 1, 0); // last day of end month
-  const windowStartMonth = new Date(windowEndMonth.getFullYear(), windowEndMonth.getMonth() - (HEATMAP_MONTHS - 1), 1); // 1st of start month
+  const windowEndMonth = new Date(today.getFullYear(), today.getMonth() - offset * HEATMAP_MONTHS + 1, 0);
+  const windowStartMonth = new Date(windowEndMonth.getFullYear(), windowEndMonth.getMonth() - (HEATMAP_MONTHS - 1), 1);
 
-  // Completion rate for this window
-  let windowDone = 0, windowTotal = 0;
-  for (let d = new Date(windowStartMonth); d <= windowEndMonth && d <= today; d = addDays(d, 1)) {
-    windowTotal++;
-    if (habitLevel(habit, dateStr(d)) > 0) windowDone++;
-  }
-  const rate = windowTotal > 0 ? Math.round(windowDone / windowTotal * 100) : 0;
-
-  // Nav label: just month names
   const startName = windowStartMonth.toLocaleDateString('en-US', { month: 'long', year: windowStartMonth.getFullYear() !== windowEndMonth.getFullYear() ? 'numeric' : undefined });
   const endName = windowEndMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const navLabel = `${startName} – ${endName}`;
 
-  // Build week columns from the Sunday on or before windowStartMonth through the Saturday on or after windowEndMonth
-  const startDow = windowStartMonth.getDay();
-  const gridStart = addDays(windowStartMonth, -startDow); // rewind to Sunday
-  const endDow = windowEndMonth.getDay();
-  const gridEnd = addDays(windowEndMonth, 6 - endDow); // forward to Saturday
+  /* ── Stat boxes. These always describe the present; they do not follow
+        the ‹ › pager (the heatmap and trend chart do). ── */
+  const end = statsEndDate(habit, hs, today);
+  const created = habitStart(habit);
+  let statsHtml;
 
-  // Count total weeks — cap so we never show weeks fully outside the window
+  if (freq === 'daily') {
+    const s7      = windowStats(habit, hs, addDays(end, -6),  end);
+    const s7prior = windowStats(habit, hs, addDays(end, -13), addDays(end, -7));
+    const s30      = windowStats(habit, hs, addDays(end, -29), end);
+    const s30prior = windowStats(habit, hs, addDays(end, -59), addDays(end, -30));
+    const sAll = windowStats(habit, hs, created || addDays(end, -29), end);
+    const allPct = sAll.expected > 0 ? Math.round(rateOf(sAll) * 100) : 0;
+
+    statsHtml = `
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Record</div>
+          <div class="stat-value" style="color:${col}">${longest}</div>
+          <div class="stat-sub">${longest === 1 ? 'day' : 'days'}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">7 Day</div>
+          <div class="stat-value-row">
+            <div class="stat-value" style="color:${col}">${s7.done}<span class="stat-den">/${Math.round(s7.expected)}</span></div>
+            ${trendChip(rateOf(s7), rateOf(s7prior))}
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">30 Day</div>
+          <div class="stat-value-row">
+            <div class="stat-value" style="color:${col}">${s30.done}<span class="stat-den">/${Math.round(s30.expected)}</span></div>
+            ${trendChip(rateOf(s30), rateOf(s30prior))}
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">All time</div>
+          <div class="stat-value" style="color:${col}">${allPct}%</div>
+          <div class="stat-sub">${sAll.done}/${Math.round(sAll.expected)} days</div>
+        </div>
+      </div>`;
+  } else {
+    const wp = weekProgress(habit, today);
+    const r12 = recentWeeksStats(habit, today, 12);
+    const rAll = allTimeWeeksStats(habit, today);
+    const allPct = rAll.total > 0 ? Math.round(rAll.done / rAll.total * 100) : 0;
+    const weekDone = isWeekComplete(habit, getWeekSunday(today));
+    const weekCol = weekDone ? '#22c55e' : col;
+
+    statsHtml = `
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Record</div>
+          <div class="stat-value" style="color:${col}">${longest}</div>
+          <div class="stat-sub">${longest === 1 ? 'week' : 'weeks'}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">This Wk</div>
+          <div class="stat-value" style="color:${weekCol}">${wp.done}<span class="stat-den">/${wp.need}</span></div>
+          <div class="stat-sub">${weekDone ? 'target met' : `${Math.max(0, wp.need - wp.done)} to go`}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">12 Wks</div>
+          <div class="stat-value" style="color:${col}">${r12.done}<span class="stat-den">/${r12.total}</span></div>
+          <div class="stat-sub">on target</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">All time</div>
+          <div class="stat-value" style="color:${col}">${allPct}%</div>
+          <div class="stat-sub">${rAll.done}/${rAll.total} wks</div>
+        </div>
+      </div>`;
+  }
+
+  /* ── Heatmap (follows the pager) ── */
+  const startDow = windowStartMonth.getDay();
+  const gridStart = addDays(windowStartMonth, -startDow);
+  const endDow = windowEndMonth.getDay();
+  const gridEnd = addDays(windowEndMonth, 6 - endDow);
   const totalDays = Math.round((gridEnd - gridStart) / 86400000) + 1;
   const totalWeeks = Math.round(totalDays / 7);
 
   const weekCols = [];
-  const weekSundays = [];
   const monthLabels = [];
-  const weekMonthIndex = []; // tracks which month-slot (0,1,2,3) each week belongs to
   const shownMonths = new Set();
-  let currentMonthIndex = 0;
 
   for (let w = 0; w < totalWeeks; w++) {
     const weekSun = addDays(gridStart, w * 7);
     const weekSat = addDays(weekSun, 6);
-
-    // Skip weeks entirely outside the window
     if (weekSat < windowStartMonth || weekSun > windowEndMonth) continue;
 
-    // Detect if a new month starts this week
     let monthLabelText = '';
     for (let d = 0; d < 7; d++) {
       const day = addDays(weekSun, d);
@@ -3465,15 +3887,12 @@ function renderStreakAnalytics(habit) {
         if (!shownMonths.has(key)) {
           shownMonths.add(key);
           monthLabelText = day.toLocaleDateString('en-US', { month: 'short' });
-          if (shownMonths.size > 1) currentMonthIndex++; // increment on each new month after the first
           break;
         }
       }
     }
     monthLabels.push(monthLabelText);
-    weekMonthIndex.push(currentMonthIndex);
 
-    // Build 7 dots for this week (Sun=0 .. Sat=6)
     let dotsHtml = '';
     for (let d = 0; d < 7; d++) {
       const day = addDays(weekSun, d);
@@ -3482,167 +3901,57 @@ function renderStreakAnalytics(habit) {
       const isFuture = day > today;
       const isToday = ds === dateStr(today);
 
-      if (isOutOfWindow) {
-        dotsHtml += `<div class="h-dot" style="background:transparent"></div>`;
-        continue;
-      }
+      if (isOutOfWindow) { dotsHtml += `<div class="h-dot" style="background:transparent"></div>`; continue; }
       const level = isFuture ? 0 : habitLevel(habit, ds);
       let cls = 'h-dot';
       if (isFuture) cls += ' future';
       if (isToday) cls += ' today-ring';
-      const hDow = day.getDay();
-      const hFreq = habit.frequency || 'daily';
-      const hIsRequired = hFreq === 'weekly' && (habit.requiredDays || []).includes(hDow);
+      const beforeCreated = created && day < created;
+      const hIsRequired = freq === 'weekly' && isRequiredDow(habit, day.getDay());
       let style = '';
       if (!isFuture && level > 0) {
         style = habit.type === 'binary'
           ? `background:${col};box-shadow:0 0 4px ${col}88`
           : `background:${col};opacity:${(0.25 + (level / 4) * 0.75).toFixed(2)}`;
-      } else if (!isFuture && hIsRequired && !isOutOfWindow) {
+      } else if (beforeCreated) {
+        style = 'background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04)';
+      } else if (!isFuture && hIsRequired) {
         style = `border:1.5px solid ${col};opacity:0.6`;
       }
       dotsHtml += `<div class="${cls}" style="${style}"></div>`;
     }
     weekCols.push(dotsHtml);
-    weekSundays.push(weekSun);
   }
 
-  const weekColsHtml = weekCols.map((dots, i) => {
-    return `<div class="gh-week-col"><div class="gh-week-month-label">${monthLabels[i] || ''}</div>${dots}</div>`;
-  }).join('');
+  const weekColsHtml = weekCols.map((dots, i) =>
+    `<div class="gh-week-col"><div class="gh-week-month-label">${monthLabels[i] || ''}</div>${dots}</div>`
+  ).join('');
 
-  // Day-of-week labels
   const dowLabelsHtml = ['S','M','T','W','T','F','S'].map((l, i) => {
-    const isReq = (habit.frequency === 'weekly') && (habit.requiredDays || []).includes(i);
-    const style = isReq ? `color:${col};font-weight:800;` : '';
-    return `<div class="gh-dow-label" style="${style}">${l}</div>`;
+    const isReq = freq === 'weekly' && (habit.requiredDays || []).includes(i);
+    return `<div class="gh-dow-label" style="${isReq ? `color:${col};font-weight:800;` : ''}">${l}</div>`;
   }).join('');
 
-  // Build per-month completion counts for the area chart
-  const chartMonths = [];
-  let maxDaysInWindow = 1;
-  // Also accumulate day-of-week stats over the same window
+  /* ── Day-of-week performance, clamped to creation and to committed days ── */
   const dowDone = [0,0,0,0,0,0,0];
   const dowTotal = [0,0,0,0,0,0,0];
-  for (let m = 0; m < HEATMAP_MONTHS; m++) {
-    const mDate = new Date(windowStartMonth.getFullYear(), windowStartMonth.getMonth() + m, 1);
-    const mEnd = new Date(mDate.getFullYear(), mDate.getMonth() + 1, 0);
-    const daysInMonth = mEnd.getDate();
-    if (daysInMonth > maxDaysInWindow) maxDaysInWindow = daysInMonth;
-    const mLabel = mDate.toLocaleDateString('en-US', { month: 'short' });
-    let count = 0;
-    for (let d = new Date(mDate); d <= mEnd && d <= today; d = addDays(d, 1)) {
-      const dow = d.getDay();
-      dowTotal[dow]++;
-      if (habitLevel(habit, dateStr(d)) > 0) { count++; dowDone[dow]++; }
-    }
-    chartMonths.push({ label: mLabel, count });
+  let dowFrom = new Date(windowStartMonth);
+  if (created && dowFrom < created) dowFrom = new Date(created);
+  const dowTo = windowEndMonth < today ? windowEndMonth : today;
+  for (let d = new Date(dowFrom); d <= dowTo; d = addDays(d, 1)) {
+    const dow = d.getDay();
+    if (freq === 'weekly' && !isRequiredDow(habit, dow)) continue;
+    dowTotal[dow]++;
+    if (hs.has(dateStr(d))) dowDone[dow]++;
   }
 
-  // 7-day completion % vs prior 7 days
-  let sevenDayDone = 0, priorSevenDayDone = 0;
-  for (let i = 0; i < 7; i++) {
-    if (habitLevel(habit, dateStr(addDays(today, -i))) > 0) sevenDayDone++;
-    if (habitLevel(habit, dateStr(addDays(today, -7 - i))) > 0) priorSevenDayDone++;
-  }
-  const sevenDayRate = Math.round((sevenDayDone / 7) * 100);
-  const priorSevenDayRate = Math.round((priorSevenDayDone / 7) * 100);
-  const sevenDayDiff = sevenDayRate - priorSevenDayRate;
-  const sevenArrow = sevenDayDiff > 0 ? '↑' : sevenDayDiff < 0 ? '↓' : '→';
-  const weekLabel = `${sevenArrow} ${sevenDayRate}%`;
-  const weekColor = sevenDayDiff > 0 ? '#22c55e' : sevenDayDiff < 0 ? '#ef4444' : 'var(--text-muted)';
-
-  // 30-day completion % vs prior 30 days
-  let thirtyDayDone = 0, priorThirtyDayDone = 0;
-  for (let i = 0; i < 30; i++) {
-    if (habitLevel(habit, dateStr(addDays(today, -i))) > 0) thirtyDayDone++;
-    if (habitLevel(habit, dateStr(addDays(today, -30 - i))) > 0) priorThirtyDayDone++;
-  }
-  const thirtyDayRate = Math.round((thirtyDayDone / 30) * 100);
-  const priorThirtyDayRate = Math.round((priorThirtyDayDone / 30) * 100);
-  const thirtyDiff = thirtyDayRate - priorThirtyDayRate;
-  const thirtyArrow = thirtyDiff > 0 ? '↑' : thirtyDiff < 0 ? '↓' : '→';
-  const thirtyCol = thirtyDiff > 0 ? '#22c55e' : thirtyDiff < 0 ? '#ef4444' : 'var(--text-muted)';
-  const thirtyLabel = `${thirtyArrow} ${thirtyDayRate}%`;
-  let paceAnnotation = { text: `${thirtyArrow} ${thirtyDayRate}%`, color: 'rgba(255,255,255,0.5)', statColor: thirtyCol };
-
-  // Weekly/custom stats
-  const freq = habit.frequency || 'daily';
-  let weeksCompleted = 0, weeksTried = 0, weekSuccessRate = 0;
-  let thisWeekLabel = '—', thisWeekColor = 'var(--text-muted)';
-  if (freq !== 'daily') {
-    const created = habit.created ? new Date(habit.created + 'T12:00:00') : addDays(today, -365);
-    const createdWeekSun = getWeekSunday(created);
-    const thisWeekSun2 = getWeekSunday(today);
-    const totalW = Math.round((thisWeekSun2 - createdWeekSun) / (7 * 86400000)) + 1;
-    for (let w = 0; w < totalW; w++) {
-      const ws = addDays(thisWeekSun2, -w * 7);
-      const wSat = addDays(ws, 6);
-      if (wSat >= today && w === 0) continue; // skip current incomplete week for success rate
-      weeksTried++;
-      if (isWeekComplete(habit, ws)) weeksCompleted++;
-    }
-    weekSuccessRate = weeksTried > 0 ? Math.round(weeksCompleted / weeksTried * 100) : 0;
-    // This week progress
-    const thisWS = getWeekSunday(today);
-    if (freq === 'custom') {
-      const need = habit.requiredCount || 1;
-      let doneSoFar = 0;
-      for (let d = 0; d < 7; d++) {
-        const day = addDays(thisWS, d);
-        if (day > today) break;
-        if (habitLevel(habit, dateStr(day)) > 0) doneSoFar++;
-      }
-      thisWeekLabel = `${doneSoFar}/${need}`;
-      thisWeekColor = doneSoFar >= need ? '#22c55e' : col;
-    } else {
-      const required = habit.requiredDays || [];
-      let doneReq = 0;
-      for (const dow of required) {
-        const day = addDays(thisWS, dow);
-        if (day > today) continue;
-        if (habitLevel(habit, dateStr(day)) > 0) doneReq++;
-      }
-      const reqSoFar = required.filter(dow => addDays(thisWS, dow) <= today).length;
-      thisWeekLabel = `${doneReq}/${reqSoFar}`;
-      thisWeekColor = doneReq === reqSoFar && reqSoFar > 0 ? '#22c55e' : reqSoFar > 0 ? col : 'var(--text-muted)';
-    }
-  }
-
-  const chartSvg = buildAreaChart(chartMonths, col, maxDaysInWindow, paceAnnotation);
+  const chartSvg = buildAdherenceChart(habit, hs, windowStartMonth, windowEndMonth, today, col);
   const dowSvg = buildDowChart(dowDone, dowTotal, col);
 
   return `
     <div class="streak-expanded">
-      ${(habit.frequency||'daily')==='daily' ? `
-      <div class="stats-row" style="grid-template-columns:1fr 1fr 1fr 1fr">
-        <div class="stat-box">
-          <div class="stat-label">Record</div>
-          <div class="stat-value" style="color:${col}">${longest}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">4-mo %</div>
-          <div class="stat-value" style="color:${col}">${rate}%</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">7-Day</div>
-          <div class="stat-value" style="color:${weekColor};font-size:15px">${weekLabel}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">30-Day</div>
-          <div class="stat-value" style="color:${paceAnnotation ? paceAnnotation.statColor : 'var(--text-muted)'};font-size:15px">${paceAnnotation ? paceAnnotation.text : '—'}</div>
-        </div>
-      </div>` : `
-      <div class="stats-row" style="grid-template-columns:1fr 1fr">
-        <div class="stat-box">
-          <div class="stat-label">Record</div>
-          <div class="stat-value" style="color:${col}">${longest}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">This Wk</div>
-          <div class="stat-value" style="color:${thisWeekColor};font-size:15px">${thisWeekLabel}</div>
-        </div>
-      </div>`}
+      ${habit.description ? `<div class="habit-desc" style="border-left-color:${col}66">${escHtml(habit.description)}</div>` : ''}
+      ${statsHtml}
       <div class="heatmap-nav">
         <button class="heatmap-nav-btn" onclick="event.stopPropagation();shiftHeatmapWindow('${habit.id}', 1)">&#8249;</button>
         <div class="heatmap-nav-label">${navLabel}</div>
@@ -3653,7 +3962,7 @@ function renderStreakAnalytics(habit) {
         <div class="gh-heatmap-grid">${weekColsHtml}</div>
       </div>
       <div style="margin-top:14px">
-        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Completions / Month</div>
+        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Adherence trend</div>
         ${chartSvg}
       </div>
       <div style="margin-top:14px">
@@ -3664,75 +3973,92 @@ function renderStreakAnalytics(habit) {
   `;
 }
 
-function buildAreaChart(months, col, maxVal, paceAnnotation) {
-  const W = 320, H = 72;
-  const padL = 24, padR = 8, padT = 8, padB = 18;
+/* Rolling 30-day adherence, sampled weekly.
+
+   Every point answers the same question — "over the 30 days ending here, what
+   share of my target did I hit?" — so the line only moves when behaviour moves.
+   The old chart bucketed raw completions by calendar month, which meant the
+   current month always started near zero and climbed, producing a cliff on the
+   1st of every month that had nothing to do with performance. */
+function buildAdherenceChart(habit, hs, wStart, wEnd, today, col) {
+  const created = habitStart(habit);
+  let start = new Date(wStart);
+  if (created && start < created) start = new Date(created);
+  const end = wEnd < today ? new Date(wEnd) : new Date(today);
+  if (end < start) return `<div class="chart-empty">Nothing tracked in this range.</div>`;
+
+  // Weekly samples, walking back from the most recent day in the window.
+  const samples = [];
+  for (let d = new Date(end); d >= start; d = addDays(d, -7)) samples.unshift(new Date(d));
+
+  const pts = [];
+  samples.forEach(d => {
+    const st = windowStats(habit, hs, addDays(d, -29), d);
+    if (st.days < 7) return;  // need at least a week of history behind a point
+    pts.push({ d, pct: rateOf(st) * 100 });
+  });
+
+  if (pts.length < 2) {
+    return `<div class="chart-empty">Not enough history yet.<br>This chart fills in after about two weeks of tracking.</div>`;
+  }
+
+  const W = 320, H = 88;
+  const padL = 26, padR = 10, padT = 14, padB = 18;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
-  const n = months.length;
+  const n = pts.length;
 
-  // X positions: evenly spaced, one per month, centered
-  const xPos = months.map((_, i) => padL + (i / (n - 1)) * chartW);
-  const yPos = months.map(m => padT + chartH - (m.count / maxVal) * chartH);
+  const xs = pts.map((_, i) => padL + (i / (n - 1)) * chartW);
+  const ys = pts.map(p => padT + chartH - (p.pct / 100) * chartH);
 
-  // Build smooth cubic bezier path
-  function ctrlPts(p0, p1, p2, t = 0.4) {
+  function ctrl(p0, p1, p2, t = 0.35) {
     return {
-      cp1x: p1[0] + (p2[0] - p0[0]) * t,
-      cp1y: p1[1] + (p2[1] - p0[1]) * t,
-      cp2x: p2[0] - (p2[0] - p0[0]) * t,
-      cp2y: p2[1] - (p2[1] - p0[1]) * t,
+      cp1x: p1[0] + (p2[0] - p0[0]) * t, cp1y: p1[1] + (p2[1] - p0[1]) * t,
+      cp2x: p2[0] - (p2[0] - p0[0]) * t, cp2y: p2[1] - (p2[1] - p0[1]) * t
     };
   }
-
-  let linePath = `M ${xPos[0]},${yPos[0]}`;
+  let linePath = `M ${xs[0].toFixed(1)},${ys[0].toFixed(1)}`;
   for (let i = 1; i < n; i++) {
-    const prev2 = [xPos[Math.max(0, i-2)], yPos[Math.max(0, i-2)]];
-    const prev  = [xPos[i-1], yPos[i-1]];
-    const cur   = [xPos[i],   yPos[i]];
-    const next  = [xPos[Math.min(n-1, i+1)], yPos[Math.min(n-1, i+1)]];
-    const { cp1x, cp1y, cp2x, cp2y } = ctrlPts(prev2, prev, cur);
+    const prev2 = [xs[Math.max(0, i-2)], ys[Math.max(0, i-2)]];
+    const prev  = [xs[i-1], ys[i-1]];
+    const cur   = [xs[i], ys[i]];
+    const { cp1x, cp1y, cp2x, cp2y } = ctrl(prev2, prev, cur);
     linePath += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${cur[0].toFixed(1)},${cur[1].toFixed(1)}`;
   }
-
-  // Area path: close down to baseline
   const baseY = padT + chartH;
-  const areaPath = `${linePath} L ${xPos[n-1]},${baseY} L ${xPos[0]},${baseY} Z`;
+  const areaPath = `${linePath} L ${xs[n-1].toFixed(1)},${baseY} L ${xs[0].toFixed(1)},${baseY} Z`;
 
-  // Y-axis gridlines at 0, 50%, 100%
-  const gridVals = [0, Math.round(maxVal / 2), maxVal];
-  const grids = gridVals.map(v => {
-    const gy = padT + chartH - (v / maxVal) * chartH;
-    return `
-      <line x1="${padL}" y1="${gy.toFixed(1)}" x2="${W - padR}" y2="${gy.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-      <text x="${padL - 4}" y="${(gy + 3.5).toFixed(1)}" fill="rgba(255,255,255,0.25)" font-size="7" text-anchor="end" font-family="Inter,sans-serif">${v}</text>
-    `;
+  const grids = [0, 50, 100].map(v => {
+    const gy = padT + chartH - (v / 100) * chartH;
+    return `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${W - padR}" y2="${gy.toFixed(1)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <text x="${padL - 4}" y="${(gy + 3.5).toFixed(1)}" fill="rgba(255,255,255,0.25)" font-size="7" text-anchor="end" font-family="Inter,sans-serif">${v}</text>`;
   }).join('');
 
-  // Dots at each data point
-  const dots = months.map((m, i) => `
-    <circle cx="${xPos[i].toFixed(1)}" cy="${yPos[i].toFixed(1)}" r="2.5" fill="${col}"/>
-  `).join('');
+  // Month labels wherever the month changes between samples.
+  let lastMonth = -1;
+  const labels = pts.map((p, i) => {
+    const m = p.d.getMonth();
+    if (m === lastMonth) return '';
+    lastMonth = m;
+    const x = Math.min(W - padR - 8, Math.max(padL, xs[i]));
+    return `<text x="${x.toFixed(1)}" y="${H - 2}" fill="rgba(255,255,255,0.35)" font-size="8" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600">${p.d.toLocaleDateString('en-US', { month: 'short' })}</text>`;
+  }).join('');
 
-  // X-axis month labels
-  const labels = months.map((m, i) => `
-    <text x="${xPos[i].toFixed(1)}" y="${H - 2}" fill="rgba(255,255,255,0.35)" font-size="8" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600">${m.label}</text>
-  `).join('');
+  const dots = pts.map((p, i) =>
+    `<circle cx="${xs[i].toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${i === n-1 ? 3 : 1.5}" fill="${col}" opacity="${i === n-1 ? 1 : 0.55}"/>`
+  ).join('');
 
-  // Pace annotation above the last (current month) dot
-  const lastX = xPos[n-1];
-  const lastY = yPos[n-1];
-  const paceHtml = paceAnnotation
-    ? `<text x="${lastX.toFixed(1)}" y="${(lastY - 8).toFixed(1)}" fill="${paceAnnotation.color}" font-size="7.5" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700">${paceAnnotation.text}</text>`
-    : '';
+  const lastPct = Math.round(pts[n-1].pct);
+  const labelX = Math.min(W - padR - 12, xs[n-1]);
+  const labelY = Math.max(padT + 6, ys[n-1] - 7);
+  const endLabel = `<text x="${labelX.toFixed(1)}" y="${labelY.toFixed(1)}" fill="${col}" font-size="8.5" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800">${lastPct}%</text>`;
 
-  const gradId = `ag_${Math.random().toString(36).slice(2,7)}`;
-
+  const gradId = `ad_${Math.random().toString(36).slice(2,7)}`;
   return `
     <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;overflow:visible">
       <defs>
         <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${col}" stop-opacity="0.45"/>
+          <stop offset="0%" stop-color="${col}" stop-opacity="0.42"/>
           <stop offset="100%" stop-color="${col}" stop-opacity="0.03"/>
         </linearGradient>
       </defs>
@@ -3740,7 +4066,7 @@ function buildAreaChart(months, col, maxVal, paceAnnotation) {
       <path d="${areaPath}" fill="url(#${gradId})"/>
       <path d="${linePath}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
       ${dots}
-      ${paceHtml}
+      ${endLabel}
       ${labels}
     </svg>
   `;
@@ -3748,32 +4074,36 @@ function buildAreaChart(months, col, maxVal, paceAnnotation) {
 
 function buildDowChart(dowDone, dowTotal, col) {
   const W = 320, H = 64;
-  const padL = 0, padR = 0, padT = 4, padB = 16;
-  const chartW = W - padL - padR;
+  const padT = 4, padB = 16;
+  const chartW = W;
   const chartH = H - padT - padB;
   const labels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const n = 7;
-  const barW = Math.floor(chartW / n) - 4;
-  const rates = dowTotal.map((t, i) => t > 0 ? dowDone[i] / t : 0);
-  const maxRate = Math.max(...rates, 0.01);
+  const barW = Math.floor(chartW / n) - 6;
+  const rates = dowTotal.map((t, i) => t > 0 ? dowDone[i] / t : null);
+  const active = rates.filter(r => r !== null);
+  const maxRate = active.length ? Math.max(...active) : 0;
 
   const bars = labels.map((lbl, i) => {
     const rate = rates[i];
-    const pct = rate / 1; // always out of 100%
-    const barH = Math.max(2, Math.round(pct * chartH));
-    const x = padL + i * (chartW / n) + (chartW / n - barW) / 2;
+    const x = i * (chartW / n) + (chartW / n - barW) / 2;
+    const labelEl = `<text x="${(x + barW/2).toFixed(1)}" y="${H - 2}" fill="rgba(255,255,255,0.3)" font-size="8" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600">${lbl}</text>`;
+
+    // Days the habit never asks for (or has no data for) get a muted dash.
+    if (rate === null) {
+      const y = padT + chartH - 2;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="2" rx="1" fill="rgba(255,255,255,0.09)"/>${labelEl}`;
+    }
+    const barH = Math.max(2, Math.round(rate * chartH));
     const y = padT + chartH - barH;
     const isTop = rate === maxRate && rate > 0;
     const opacity = rate === 0 ? 0.12 : 0.25 + rate * 0.75;
     const pctLabel = Math.round(rate * 100);
-
     return `
-      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${barH}" rx="3"
-        fill="${col}" opacity="${opacity.toFixed(2)}"/>
+      <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${barH}" rx="3" fill="${col}" opacity="${opacity.toFixed(2)}"/>
       ${isTop ? `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="2" rx="1" fill="${col}"/>` : ''}
       ${rate > 0 ? `<text x="${(x + barW/2).toFixed(1)}" y="${(y - 3).toFixed(1)}" fill="${col}" opacity="${opacity.toFixed(2)}" font-size="7" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700">${pctLabel}%</text>` : ''}
-      <text x="${(x + barW/2).toFixed(1)}" y="${H - 2}" fill="rgba(255,255,255,0.3)" font-size="8" text-anchor="middle" font-family="Inter,sans-serif" font-weight="600">${lbl}</text>
-    `;
+      ${labelEl}`;
   }).join('');
 
   return `
@@ -3913,7 +4243,7 @@ function openYesterdayModal(habitId) {
   levelRow.innerHTML = btns;
   levelRow.style.display = 'flex';
 
-  document.getElementById('itemModal').classList.add('open');
+  lockScroll(); document.getElementById('itemModal').classList.add('open');
   habitSaveOverride = false;
   folderItemModalCtx = null;
   yesterdaySaveOverride = true;
@@ -3958,6 +4288,7 @@ function closeYesterdayModal() {
   yesterdayModalCtx = null;
   yesterdaySaveOverride = false;
   document.getElementById('itemModal').classList.remove('open');
+  unlockScroll();
 }
 
 /* ─────────────────────────────────────────────────────
@@ -4000,7 +4331,7 @@ function openNewFolderSection(tab, folderId) {
   if (typeRow) typeRow.style.display = 'flex';
   const typeHint = document.getElementById('sectionTypeHint');
   if (typeHint) typeHint.style.display = 'none';
-  document.getElementById('sectionEditModal').classList.add('open');
+  lockScroll(); document.getElementById('sectionEditModal').classList.add('open');
   setTimeout(() => document.getElementById('sectionEditInput').focus(), 320);
 }
 
@@ -4019,7 +4350,7 @@ function openFolderItemModal(tab, folderId, sectionId) {
   const dateRow = document.getElementById('itemModalDateRow');
   dateRow.classList.toggle('visible', section.type === 'tasks');
   document.getElementById('itemModalDateInput').value = '';
-  document.getElementById('itemModal').classList.add('open');
+  lockScroll(); document.getElementById('itemModal').classList.add('open');
   habitSaveOverride = false;
   setTimeout(() => document.getElementById('itemModalInput').focus(), 320);
 }
@@ -4034,7 +4365,7 @@ function openEditFolderItemModal(tab, folderId, sectionId, itemId) {
   const dateRow = document.getElementById('itemModalDateRow');
   dateRow.classList.toggle('visible', section.type === 'tasks');
   document.getElementById('itemModalDateInput').value = item.deadline || '';
-  document.getElementById('itemModal').classList.add('open');
+  lockScroll(); document.getElementById('itemModal').classList.add('open');
   habitSaveOverride = false;
   setTimeout(() => document.getElementById('itemModalInput').focus(), 320);
 }
@@ -4119,7 +4450,7 @@ function openFolderSectionAction(tab, folderId, sectionId) {
 const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 function openAddHabit() {
-  habitModalCtx = { mode: 'add', habitType: 'binary', habitColor: 'coral', habitFrequency: 'daily', habitCustomMode: 'count', habitRequiredDays: [1,2,3,4,5], habitRequiredCount: 3 };
+  habitModalCtx = { mode: 'add', habitType: 'binary', habitColor: 'coral', habitFrequency: 'daily', habitCustomMode: 'count', habitRequiredDays: [1,2,3,4,5], habitRequiredCount: 3, habitDescription: '' };
   document.getElementById('itemModalTitle').textContent = 'New habit';
   document.getElementById('itemModalInput').value = '';
   document.getElementById('itemModalInput').style.display = '';
@@ -4138,7 +4469,7 @@ function openAddHabit() {
 
   renderHabitExtras(extras);
   extras.style.display = 'block';
-  document.getElementById('itemModal').classList.add('open');
+  lockScroll(); document.getElementById('itemModal').classList.add('open');
   habitSaveOverride = true;
   setTimeout(() => document.getElementById('itemModalInput').focus(), 320);
 }
@@ -4168,7 +4499,13 @@ function renderHabitExtras(extras) {
     : `Complete any ${ctx.habitRequiredCount||3} days per week — whichever days work for you.`;
 
   extras.innerHTML = `
-    <div class="habit-extras-label">Color</div>
+    <div class="habit-extras-label">Description <span style="font-weight:500;letter-spacing:0;text-transform:none;color:var(--text-dim)">· optional</span></div>
+    <textarea id="habitDescInput" class="modal-input"
+      style="min-height:auto;font-size:13.5px;padding:11px 13px"
+      rows="2"
+      placeholder="e.g. I will read non-fiction every day"
+      oninput="if(habitModalCtx)habitModalCtx.habitDescription=this.value">${escHtml(ctx.habitDescription || '')}</textarea>
+    <div class="habit-extras-label" style="margin-top:16px">Color</div>
     <div class="color-swatch-row">${swatches}</div>
     <div class="habit-extras-label" style="margin-top:16px">Frequency</div>
     <div class="habit-type-row">
@@ -4296,7 +4633,7 @@ function editHabitColorFromAction() {
       <div class="color-swatch-row">${swatches}</div>
     `;
     extras.style.display = 'block';
-    document.getElementById('itemModal').classList.add('open');
+    lockScroll(); document.getElementById('itemModal').classList.add('open');
   }, 200);
 }
 
