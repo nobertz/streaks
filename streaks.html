@@ -1343,15 +1343,34 @@
     background: var(--surface);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-sm);
-    padding: 8px 8px 8px 9px;
+    padding: 8px 8px 7px 9px;
     display: flex;
-    align-items: center;
-    gap: 7px;
+    flex-direction: column;
+    gap: 6px;
     cursor: pointer;
     min-height: 50px;
     transition: transform 0.12s, border-color 0.2s;
     animation: fadeSlideIn 0.25s ease both;
   }
+  .compact-chip-top {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  /* Current week only — seven dots, Sunday through Saturday. */
+  .compact-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    padding: 0 1px;
+  }
+  .compact-dot {
+    height: 5px;
+    border-radius: 2.5px;
+    background: rgba(255,255,255,0.09);
+  }
+  .compact-dot.future { background: rgba(255,255,255,0.04); }
+  .compact-dot.today-ring { box-shadow: 0 0 0 1.5px rgba(255,255,255,0.30); }
   .compact-chip:active { transform: scale(0.96); }
   .compact-flame {
     width: 30px; height: 30px;
@@ -1792,27 +1811,38 @@
     }
     .streaky-next.sk-veiled { opacity: 0; animation: none; }
 
-    .sk-more-row {
-      display: flex; align-items: center; gap: 8px;
-      margin-top: 4px;
-      padding: 10px 12px;
-      border: 1px dashed rgba(255,77,126,0.42);
+    /* Yes/No and category boxes for the review offer. */
+    .sk-choice-row { display: flex; gap: 8px; margin-top: 2px; }
+    .sk-choice-row.col { flex-direction: column; }
+    .sk-choice {
+      flex: 1;
+      text-align: center;
+      padding: 11px 12px;
+      border: 1.5px solid rgba(255,77,126,0.45);
       border-radius: 11px;
-      background: rgba(255,77,126,0.06);
+      background: rgba(255,77,126,0.08);
+      font-family: 'Inter', sans-serif;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--pink);
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: background 0.18s ease;
+      transition: background 0.18s ease, transform 0.12s ease;
     }
-    .sk-more-row:active { background: rgba(255,77,126,0.14); }
-    .sk-more-text {
-      flex: 1;
-      font-family: 'Inter', sans-serif;
-      font-size: 12.5px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      color: var(--pink);
+    .sk-choice:active { transform: scale(0.97); background: rgba(255,77,126,0.18); }
+    .sk-choice.dim {
+      border-color: var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
     }
-    .sk-more-arrow { color: var(--pink); font-size: 13px; font-weight: 800; }
+    .sk-choice.dim:active { background: rgba(255,255,255,0.07); }
+    .sk-choice-sub {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      opacity: 0.62;
+      margin-top: 2px;
+    }
 
     @media (prefers-reduced-motion: reduce) {
       .streaky-portrait {
@@ -2117,7 +2147,8 @@ const defaultData = {
   streaks: {
     habits: []  // {id, name, history: ['YYYY-MM-DD', ...], created}
   },
-  streaky: { lastGreeted: null, lastWeekly: null, bags: {}, lastChecklistNudge: null }
+  streaky: { lastGreeted: null, lastWeekly: null, bags: {}, lastChecklistNudge: null },
+  prefs: { compactMode: false }   // remembered UI choices
 };
 
 function loadData() {
@@ -2156,7 +2187,8 @@ function loadData() {
       checklist: migrateSections(parsed.checklist) || JSON.parse(JSON.stringify(defaultData.checklist)),
       bucket: migrateSections(parsed.bucket) || JSON.parse(JSON.stringify(defaultData.bucket)),
       streaks: parsed.streaks || { habits: [] },
-      streaky: parsed.streaky || { lastGreeted: null, lastWeekly: null, bags: {}, lastChecklistNudge: null }
+      streaky: parsed.streaky || { lastGreeted: null, lastWeekly: null, bags: {}, lastChecklistNudge: null },
+      prefs: parsed.prefs || { compactMode: false }
     };
   } catch {
     return JSON.parse(JSON.stringify(defaultData));
@@ -3927,11 +3959,15 @@ function getTotalCompletions(habit) {
 const expandedHabits = new Set();
 
 // Compact view collapses every habit into a two-column grid of chips so the
-// whole list is visible at a glance. Always starts expanded on app open.
-let compactMode = false;
+// whole list is visible at a glance. The choice sticks: whichever view you
+// used last is the one the app opens in.
+let compactMode = !!(data.prefs && data.prefs.compactMode);
 
 function toggleCompactMode() {
   compactMode = !compactMode;
+  if (!data.prefs) data.prefs = {};
+  data.prefs.compactMode = compactMode;
+  saveData(data);
   renderStreaks();
 }
 
@@ -4008,14 +4044,49 @@ function renderCompactChip(habit) {
 
   return `
     <div class="compact-chip" onclick="${logFn}" style="${state !== 'off' ? `border-color:${col}40` : ''}">
-      <div class="compact-flame" style="${flameBoxStyle(state, col)}">${flameSvg(flameFill(state, col), 16)}</div>
-      <div class="compact-text">
-        <div class="compact-name">${escHtml(habit.name)}</div>
-        <div class="compact-sub" style="color:${state === 'off' ? 'var(--text-dim)' : col}">${sub}</div>
+      <div class="compact-chip-top">
+        <div class="compact-flame" style="${flameBoxStyle(state, col)}">${flameSvg(flameFill(state, col), 16)}</div>
+        <div class="compact-text">
+          <div class="compact-name">${escHtml(habit.name)}</div>
+          <div class="compact-sub" style="color:${state === 'off' ? 'var(--text-dim)' : col}">${sub}</div>
+        </div>
+        ${buildMiniRing(habit, col)}
       </div>
-      ${buildMiniRing(habit, col)}
+      <div class="compact-week">${buildCompactWeek(habit, col)}</div>
     </div>
   `;
+}
+
+/* Seven dots for the current week (Sun..Sat), same fill rules as the
+   three-week grid on the full card but only the week you're in. */
+function buildCompactWeek(habit, col) {
+  const today = new Date();
+  const sunday = addDays(today, -today.getDay());
+  const freq = habit.frequency || 'daily';
+  const required = habit.requiredDays || [0, 1, 2, 3, 4, 5, 6];
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(sunday, i);
+    const ds = dateStr(d);
+    const isFuture = d > today;
+    const isToday = ds === todayStr();
+    const level = isFuture ? 0 : habitLevel(habit, ds);
+    const isRequired = freq === 'weekly' ? required.includes(i) : true;
+
+    let cls = 'compact-dot';
+    if (isFuture) cls += ' future';
+    if (isToday) cls += ' today-ring';
+    let style = '';
+    if (!isFuture && level > 0) {
+      style = habit.type === 'binary'
+        ? `background:${col}`
+        : `background:${col};opacity:${(0.3 + (level / 4) * 0.7).toFixed(2)}`;
+    } else if (!isFuture && isRequired && freq === 'weekly') {
+      style = `box-shadow:inset 0 0 0 1.5px ${col};opacity:0.55`;
+    }
+    html += `<div class="${cls}" style="${style}"></div>`;
+  }
+  return html;
 }
 
 function renderStreakCard(habit) {
@@ -5304,7 +5375,9 @@ document.getElementById('importInput').addEventListener('change', function(e) {
           // re-greet or forget which lines he's already used.
           streaky: incoming.streaky
             ? JSON.parse(JSON.stringify(incoming.streaky))
-            : (data.streaky || { lastGreeted: null, lastWeekly: null, bags: {}, lastChecklistNudge: null })
+            : (data.streaky || { lastGreeted: null, lastWeekly: null, bags: {}, lastChecklistNudge: null }),
+          // View preference is a property of this device, not the backup.
+          prefs: data.prefs || { compactMode: false }
         };
         // Migrate any old section type names just in case
         const migrateSections = (tab) => {
@@ -5418,7 +5491,7 @@ const STREAKY_ART = {
   unhinged:  'data:image/png;base64,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'
 };
 /* Header button and the fallback for any unmapped line. */
-const STREAKY_IMG = STREAKY_ART.normal;
+const STREAKY_IMG = STREAKY_ART.neutral;
 
 /* ─────────────────────────────────────────────────────
    STREAKY — mascot dialog system
@@ -5817,57 +5890,194 @@ function streakyBirthdayLine() {
 /* ─────────────────────────────────────────────────────
    STREAKY — contextual lines built from real data
    ───────────────────────────────────────────────────── */
-function streakyContextLines() {
+/* Count how many of the last `days` days (ending yesterday) were logged.
+   Today is excluded everywhere in here — at 7am it carries no information
+   and including it made every stat sag each morning. */
+function streakyHitCount(habit, days, endOffset) {
+  const off = endOffset || 1;
+  let n = 0;
+  for (let i = off; i < off + days; i++) {
+    if (habitLevel(habit, dateStr(addDays(new Date(), -i))) > 0) n++;
+  }
+  return n;
+}
+
+/* Days since this habit was last logged (0 = today, null = never). */
+function streakyDaysSinceLast(habit) {
+  for (let i = 0; i <= 60; i++) {
+    if (habitLevel(habit, dateStr(addDays(new Date(), -i))) > 0) return i;
+  }
+  return null;
+}
+
+/* ── Observations ──────────────────────────────────────
+   Everything here tells you something you DON'T already know from
+   looking at the app. Deliberately excludes "you haven't logged
+   today" — you know that, you just opened it.                    */
+function streakyObservations() {
   const out = [];
-  const habits = data.streaks.habits || [];
-  if (habits.length === 0) {
-    out.push({ text: "You've got no habits set up yet. Add one and I'll have something to bug you about.",
-               mood: 'normal' });
-    return out;
+  const habits = (data.streaks.habits || []).filter(h => (h.history || []).length > 0);
+  const daily = habits.filter(h => (h.frequency || 'daily') === 'daily');
+  const MILES = [7, 14, 21, 30, 50, 75, 100, 150, 200, 365];
+
+  // 1. Just hit a milestone
+  habits.forEach(h => {
+    const s = getCurrentStreak(h);
+    if (MILES.includes(s)) {
+      out.push({ key: 'mile_' + h.id + '_' + s, mood: 'pumped',
+        text: `${escHtml(h.name)} just hit ${s} days. ${s >= 100 ? "ONE HUNDRED PLUS. I need a moment." : "That's a real number now. Framed. Mounted."}` });
+    }
+  });
+
+  // 2. One day out from a milestone — forward-looking, not a warning
+  habits.forEach(h => {
+    const s = getCurrentStreak(h);
+    const next = MILES.find(m => m === s + 1);
+    if (next) {
+      out.push({ key: 'near_' + h.id + '_' + next, mood: 'pumped',
+        text: `${escHtml(h.name)} is at ${s}. One more and it's ${next}. I'm just saying. No pressure. Enormous pressure.` });
+    }
+  });
+
+  // 3. Slipping against its own recent baseline
+  daily.forEach(h => {
+    const recent = streakyHitCount(h, 14, 1);
+    const prior  = streakyHitCount(h, 14, 15);
+    if (prior >= 7 && recent <= prior - 4) {
+      out.push({ key: 'slip_' + h.id, mood: 'uncertain',
+        text: `${escHtml(h.name)} ran ${recent} of the last 14 days. The two weeks before that it was ${prior}. Not a lecture, just something I noticed.` });
+    }
+  });
+
+  // 4. Quietly improving
+  daily.forEach(h => {
+    const recent = streakyHitCount(h, 14, 1);
+    const prior  = streakyHitCount(h, 14, 15);
+    if (recent >= prior + 4 && recent >= 7) {
+      out.push({ key: 'rise_' + h.id, mood: 'pumped',
+        text: `${escHtml(h.name)} is up to ${recent} of the last 14 days, from ${prior} before that. That's the direction I like.` });
+    }
+  });
+
+  // 5. The weekday you miss most (needs real history to mean anything)
+  daily.forEach(h => {
+    const miss = [0,0,0,0,0,0,0], seen = [0,0,0,0,0,0,0];
+    for (let i = 1; i <= 56; i++) {
+      const d = addDays(new Date(), -i);
+      if (h.created && dateStr(d) < h.created) break;
+      const dow = d.getDay();
+      seen[dow]++;
+      if (habitLevel(h, dateStr(d)) === 0) miss[dow]++;
+    }
+    if (seen.every(s => s >= 4)) {
+      let worst = 0;
+      for (let i = 1; i < 7; i++) if (miss[i] > miss[worst]) worst = i;
+      const total = miss.reduce((a, b) => a + b, 0);
+      if (total >= 4 && miss[worst] >= 3 && miss[worst] >= total * 0.35) {
+        const names = ['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'];
+        out.push({ key: 'dow_' + h.id + '_' + worst, mood: 'normal',
+          text: `Pattern I've spotted: ${names[worst]} are where ${escHtml(h.name)} goes to die. ${miss[worst]} of your ${total} misses. Might be worth planning around.` });
+      }
+    }
+  });
+
+  // 6. Gone quiet — probably worth deciding about
+  habits.forEach(h => {
+    const since = streakyDaysSinceLast(h);
+    if (since !== null && since >= 10) {
+      out.push({ key: 'quiet_' + h.id, mood: 'normal',
+        text: `${escHtml(h.name)} hasn't been touched in ${since} days. Either it's time to restart it or time to admit it isn't the season for it. Both are fine answers.` });
+    }
+  });
+
+  // 7. Comeback after a real gap
+  daily.forEach(h => {
+    const s = getCurrentStreak(h);
+    if (s >= 3 && s <= 6) {
+      const before = streakyHitCount(h, 10, s + 1);
+      if (before === 0) {
+        out.push({ key: 'back_' + h.id, mood: 'pumped',
+          text: `${escHtml(h.name)} is ${s} days back after a dry spell. Restarting is the hard part and you already did it.` });
+      }
+    }
+  });
+
+  // 8. Your most reliable habit
+  if (daily.length >= 2) {
+    const scored = daily
+      .map(h => ({ h, n: streakyHitCount(h, 30, 1) }))
+      .sort((a, b) => b.n - a.n);
+    if (scored[0].n >= 22 && scored[0].n > scored[1].n + 3) {
+      out.push({ key: 'best_' + scored[0].h.id, mood: 'pumped',
+        text: `${escHtml(scored[0].h.name)} is your most reliable one — ${scored[0].n} of the last 30 days. That one's basically automatic now.` });
+    }
   }
 
+  // 9. Clean sweep yesterday
+  if (daily.length >= 2 && daily.every(h => isHabitDoneYesterday(h))) {
+    out.push({ key: 'sweep_' + dateStr(addDays(new Date(), -1)), mood: 'pumped',
+      text: "You went a perfect run yesterday. I've decided that makes me the best sidekick in this entire app." });
+  }
+
+  // 10. A streak that recently ended
+  daily.forEach(h => {
+    if (getCurrentStreak(h) === 0 && !isHabitDoneYesterday(h)) {
+      const since = streakyDaysSinceLast(h);
+      if (since !== null && since >= 2 && since <= 5) {
+        out.push({ key: 'broke_' + h.id, mood: 'uncertain',
+          text: `${escHtml(h.name)} went quiet ${since} days ago. Cool. Fine. Totally normal. New one starts whenever you say so.` });
+      }
+    }
+  });
+
+  return out;
+}
+
+/* Only genuinely urgent late in the day. In the morning "today isn't
+   logged yet" is true of every habit you own and isn't news. */
+function streakyEveningJeopardy() {
+  const hour = new Date().getHours();
+  if (hour < STREAKY_EVENING_HOUR) return null;
   const today = todayStr();
-  const atRisk = habits
+  const at = (data.streaks.habits || [])
     .filter(h => (h.frequency || 'daily') === 'daily')
     .filter(h => habitLevel(h, today) === 0 && isHabitDoneYesterday(h))
     .map(h => ({ h, streak: getCurrentStreak(h) }))
     .filter(x => x.streak >= 3)
     .sort((a, b) => b.streak - a.streak);
+  if (!at.length) return null;
+  const a = at[0];
+  return { mood: 'uncertain',
+    text: `Clock check: ${escHtml(a.h.name)} is sitting at ${a.streak} and today still isn't logged. I'm not panicking. I am ADJACENT to panicking.` };
+}
 
-  const broken = habits
-    .filter(h => (h.frequency || 'daily') === 'daily')
-    .filter(h => getCurrentStreak(h) === 0 && !isHabitDoneYesterday(h))
-    .filter(h => (h.history || []).length > 0);
-
-  const milestones = habits
-    .map(h => ({ h, streak: getCurrentStreak(h) }))
-    .filter(x => [7, 14, 21, 30, 50, 75, 100, 150, 200, 365].includes(x.streak));
-
-  // Yesterday was a clean sweep
-  const dailyHabits = habits.filter(h => (h.frequency || 'daily') === 'daily');
-  const sweptYesterday = dailyHabits.length >= 2 && dailyHabits.every(h => isHabitDoneYesterday(h));
-
-  if (milestones.length) {
-    const m = milestones[0];
-    out.push({ mood: 'pumped',
-      text: `${escHtml(m.h.name)} just hit ${m.streak} days. ${m.streak >= 100 ? "ONE HUNDRED PLUS. I need a moment." : "That's a real number now. Framed. Mounted."}` });
+function streakyContextLines() {
+  const habits = data.streaks.habits || [];
+  if (habits.length === 0) {
+    return [{ text: "You've got no habits set up yet. Add one and I'll have something to bug you about.",
+              mood: 'normal' }];
   }
 
-  if (atRisk.length) {
-    const a = atRisk[0];
-    out.push({ mood: 'uncertain',
-      text: `${escHtml(a.h.name)} is sitting at ${a.streak} and today isn't logged. I'm not panicking. I am ADJACENT to panicking.` });
-  }
+  const out = [];
+  const jeopardy = streakyEveningJeopardy();
+  if (jeopardy) out.push(jeopardy);
 
-  if (broken.length && !atRisk.length) {
-    const b = broken[0];
-    out.push({ mood: 'uncertain',
-      text: `${escHtml(b.name)} lost its streak. Cool. Fine. Totally normal. New one starts in about four seconds, so get ready.` });
-  }
+  // Rotate through whatever is true today, oldest-shown first, so the
+  // same observation doesn't lead every morning.
+  const obs = streakyObservations();
+  if (obs.length) {
+    const st = streakyState();
+    if (!st.seenObs) st.seenObs = {};
+    const seen = st.seenObs;
+    const today = todayStr();
+    obs.sort((a, b) => (seen[a.key] || '0').localeCompare(seen[b.key] || '0'));
+    const take = obs.slice(0, jeopardy ? 1 : 2);
+    take.forEach(o => { seen[o.key] = today; out.push({ text: o.text, mood: o.mood }); });
 
-  if (sweptYesterday && !atRisk.length) {
-    out.push({ mood: 'pumped',
-      text: "You went a perfect run yesterday. I've decided that makes me the best sidekick in this entire app." });
+    // Forget keys we haven't used in a while so the object can't grow forever.
+    const cutoff = dateStr(addDays(new Date(), -120));
+    Object.keys(seen).forEach(k => { if (seen[k] < cutoff) delete seen[k]; });
+    saveData(data);
   }
 
   return out.slice(0, 2);
@@ -6000,10 +6210,17 @@ function skSetMood(mood) {
   if (!wrap || !a || !b) return;
 
   if (skMood === null) {
-    a.src = STREAKY_ART[mood];          // first paint, nothing to fade from
+    // First paint of this visit. Suppress the crossfade for one frame so
+    // the previous visit's expression can't ghost through underneath.
+    a.style.transition = 'none';
+    b.style.transition = 'none';
+    a.src = STREAKY_ART[mood];
     a.style.opacity = '1';
     b.style.opacity = '0';
     skFront = 'A';
+    void a.offsetWidth;                 // flush before restoring
+    a.style.transition = '';
+    b.style.transition = '';
   } else {
     const incoming = skFront === 'A' ? b : a;
     const outgoing = skFront === 'A' ? a : b;
@@ -6066,6 +6283,17 @@ function buildStreakyDialog(opts) {
       });
       streakyState().lastChecklistNudge = todayStr();
     }
+  }
+
+  // 6. Review offer — summoned visits only. The daily greeting stays a
+  //    greeting; nobody wants a menu first thing in the morning.
+  if (opts && opts.onDemand) {
+    lines.push({
+      kind: 'offer',
+      mood: 'normal',
+      text: 'Would you like to review the Atomic Habits suggestions?',
+      text2: 'Would you like to review building good habits, or breaking bad ones?'
+    });
   }
 
   return lines;
@@ -6170,6 +6398,10 @@ function skStartReveal() {
    that does he lift, and only by the amount actually needed. */
 const STREAKY_TUCK = 24;
 
+/* Streak warnings only fire from this hour onward (24h clock). Before
+   it, an unlogged habit just means the day is young. */
+const STREAKY_EVENING_HOUR = 18;
+
 function skSeatPortrait() {
   const area = document.querySelector('.streaky-box-area');
   const box = document.querySelector('.streaky-box');
@@ -6184,6 +6416,7 @@ function skSeatPortrait() {
 /* ── Dialog ────────────────────────────────────────────*/
 function openStreaky(opts) {
   streakyBrowsing = false;
+  skOfferStep = 0;
   streakyLines = buildStreakyDialog(opts || {});
   streakyIdx = 0;
   streakyOpen = true;
@@ -6227,14 +6460,20 @@ function renderStreakyLine() {
   if (line.kind === 'checklist' && line.picks) {
     extraHtml += streakyChecklistRows(line.picks);
   }
-  // The full-list offer rides in the last line's extra slot rather than
-  // costing an extra tap. Tapping anywhere else still just closes.
-  if (isLast && !streakyBrowsing) {
-    extraHtml += `
-      <div class="sk-more-row" onclick="event.stopPropagation();streakyBrowseIdeas()">
-        <span class="sk-more-text">See all ${STREAKY_HABIT_IDEAS.length} Atomic Habits</span>
-        <span class="sk-more-arrow">→</span>
-      </div>`;
+  if (line.kind === 'offer') {
+    const nBuild = STREAKY_HABIT_IDEAS.filter(i => i.law === STREAKY_LAW_BUILD).length;
+    const nBreak = STREAKY_HABIT_IDEAS.filter(i => i.law === STREAKY_LAW_BREAK).length;
+    extraHtml += skOfferStep === 0
+      ? `<div class="sk-choice-row">
+           <div class="sk-choice" onclick="event.stopPropagation();streakyOfferYes()">Yes</div>
+           <div class="sk-choice dim" onclick="event.stopPropagation();streakyOfferNo()">No</div>
+         </div>`
+      : `<div class="sk-choice-row col">
+           <div class="sk-choice" onclick="event.stopPropagation();streakyBrowseIdeas('${STREAKY_LAW_BUILD}')">
+             Building good habits<span class="sk-choice-sub">${nBuild} suggestions</span></div>
+           <div class="sk-choice" onclick="event.stopPropagation();streakyBrowseIdeas('${STREAKY_LAW_BREAK}')">
+             Breaking bad ones<span class="sk-choice-sub">${nBreak} suggestions</span></div>
+         </div>`;
   }
 
   extraEl.innerHTML = extraHtml;
@@ -6244,26 +6483,48 @@ function renderStreakyLine() {
   const scroller = document.querySelector('.streaky-scroll');
   if (scroller) scroller.scrollTop = 0;
 
-  skSeatPortrait();
-
   document.getElementById('streakyNext').textContent = isLast ? '✕' : '▾';
 
-  skBuildChars(textEl, line.text);
+  const shown = (line.kind === 'offer' && skOfferStep === 1 && line.text2)
+    ? line.text2 : line.text;
+  skBuildChars(textEl, shown);
+
+  // Must come AFTER the characters exist — every span is present from the
+  // first frame, so the box is already at its final height and this reads
+  // the real number instead of the previous line's.
+  skSeatPortrait();
+
   skStartReveal();
 }
 
-/* Page the whole habit-idea list in array order. */
-function streakyBrowseIdeas() {
+/* Page one category of habit ideas in array order. */
+const STREAKY_LAW_BUILD = 'Building Good Habits';
+const STREAKY_LAW_BREAK = 'Breaking Bad Habits';
+
+function streakyBrowseIdeas(law) {
+  const list = law ? STREAKY_HABIT_IDEAS.filter(i => i.law === law) : STREAKY_HABIT_IDEAS;
+  if (!list.length) { closeStreaky(); return; }
   streakyBrowsing = true;
-  const total = STREAKY_HABIT_IDEAS.length;
-  // Neutral throughout: he's reading you a list, not addressing you.
-  streakyLines = STREAKY_HABIT_IDEAS.map((idea, i) => ({
+  const total = list.length;
+  streakyLines = list.map((idea, i) => ({
     header: 'Atomic habit ' + (i + 1) + ' of ' + total + ': ' + idea.law,
     text: idea.text,
-    mood: 'neutral'
+    mood: 'normal'
   }));
   streakyIdx = 0;
   renderStreakyLine();
+}
+
+/* Two-step review offer. Step 0 is yes/no, step 1 picks the category. */
+let skOfferStep = 0;
+
+function streakyOfferYes() {
+  skOfferStep = 1;
+  renderStreakyLine();
+}
+
+function streakyOfferNo() {
+  closeStreaky();
 }
 
 function streakyAdvance() {
@@ -6292,10 +6553,14 @@ function closeStreaky() {
   skStopTimer();
   skTyping = false;
   streakyBrowsing = false;
+  skOfferStep = 0;
   skMood = null;          // next open sets its face without a crossfade
   ov.classList.add('closing');
   saveData(data);
   setTimeout(() => {
+    // If he was summoned again during the close animation, leave the new
+    // dialog alone — otherwise this stale timer would hide it.
+    if (streakyOpen) return;
     ov.classList.remove('open', 'closing');
     unlockScroll();
   }, 320);
