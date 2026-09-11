@@ -1854,6 +1854,135 @@
       .streaky-next { animation: none; }
     }
 
+  /* ══════════════════════════════════════════════════════
+     LISTS v2 — Goals / Checklist / Bucket
+     Per-list color comes in as --c (base), --cd (dark), --cl (light).
+     ══════════════════════════════════════════════════════ */
+  .lv-eyebrow { font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; color:var(--text-muted); margin:6px 2px 8px; display:flex; justify-content:space-between; align-items:baseline; }
+  .lv-eyebrow em { font-style:normal; letter-spacing:.02em; text-transform:none; font-weight:500; color:var(--text-dim); font-size:11.5px; }
+  .lv-block { margin-bottom:24px; }
+
+  .lv-group { background:var(--surface); border:1px solid var(--border-soft); border-radius:14px; overflow:hidden; }
+  .lv-group > * + * { border-top:1px solid var(--border-soft); }
+  .lv-row { display:flex; align-items:center; gap:11px; padding:9px 4px 9px 13px; min-height:46px; cursor:pointer; background:var(--surface); position:relative; }
+  .lv-row.lv-nocheck { cursor:default; }
+  .lv-row.lv-nocheck::before { content:''; width:3px; align-self:stretch; min-height:18px; border-radius:2px; background:linear-gradient(180deg,var(--c),var(--cd)); flex-shrink:0; }
+  .lv-chk { width:20px; height:20px; border-radius:50%; border:1.6px solid var(--text-dim); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .lv-chk svg { width:11px; height:11px; opacity:0; transition:opacity .15s; }
+  .lv-row.lv-done .lv-chk { background:var(--c); border-color:var(--c); }
+  .lv-row.lv-done .lv-chk svg { opacity:1; }
+  .lv-row.lv-done .lv-txt { color:var(--text-dim); text-decoration:line-through; }
+  .lv-star { width:21px; height:21px; flex-shrink:0; color:var(--text-dim); display:flex; }
+  .lv-star svg { width:21px; height:21px; transition:fill .2s, color .2s; }
+  .lv-row.lv-starred .lv-star { color:var(--c); }
+  .lv-row.lv-starred .lv-star svg { fill:var(--c); }
+  .lv-row.lv-starred .lv-txt { color:var(--text-muted); }
+  .lv-row.lv-pop .lv-chk, .lv-row.lv-pop .lv-star { animation:lvPop .35s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes lvPop { 50% { transform:scale(1.3); } }
+  .lv-txt { flex:1; min-width:0; font-size:14.5px; line-height:1.3; color:var(--text); overflow-wrap:anywhere; }
+  .lv-due { font-size:11.5px; font-weight:600; color:var(--text-muted); white-space:nowrap; }
+  .lv-due.late { color:#f59e0b; } .lv-due.soon { color:#fb923c; }
+  .lv-tag { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-muted); margin-top:3px; text-decoration:none; }
+  .lv-tag i { width:6px; height:6px; border-radius:50%; background:var(--c); display:inline-block; }
+  .lv-dots { flex:0 0 auto; background:none; border:none; color:var(--text-dim); font-size:17px; line-height:1; width:32px; height:32px; border-radius:8px; cursor:pointer; -webkit-touch-callout:none; font-family:'Inter',sans-serif; }
+  .lv-dots:active, .lv-dots.drag-handle-active { color:var(--text-muted); background:var(--surface2); }
+
+  .lv-add { display:flex; align-items:center; gap:11px; padding:9px 10px 9px 13px; color:var(--text-dim); font-size:13.5px; cursor:pointer; min-height:44px; background:var(--surface); }
+  .lv-plus { width:20px; text-align:center; font-size:17px; line-height:1; color:var(--c); opacity:.85; flex-shrink:0; }
+  .lv-add-in { flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--text); font:16px 'Inter',sans-serif; padding:4px 0; }
+  .lv-when { font-size:11.5px; font-weight:600; color:var(--c); white-space:nowrap; }
+  .lv-cal { position:relative; width:32px; height:32px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--text-dim); border-radius:8px; }
+  .lv-cal.has { color:var(--c); }
+  .lv-cal svg { width:18px; height:18px; }
+  .lv-cal input { position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer; font-size:16px; }
+  .lv-clear-row { display:flex; align-items:center; justify-content:space-between; padding:7px 10px 7px 13px; font-size:12px; color:var(--text-muted); background:var(--surface); }
+  .lv-clear-btn { background:color-mix(in srgb,var(--c) 15%,transparent); color:var(--c); border:none; font:700 12px 'Inter',sans-serif; padding:7px 14px; border-radius:20px; cursor:pointer; }
+
+  .lv-sub { display:flex; align-items:center; gap:8px; margin:18px 0 6px 2px; }
+  .lv-sub-name { font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--c); flex:1; min-width:0; }
+  .lv-sub em { font-style:normal; font-size:11.5px; color:var(--text-dim); white-space:nowrap; }
+  .lv-sub .lv-dots { width:28px; height:26px; margin-right:-4px; }
+  .lv-sec:first-child .lv-sub { margin-top:4px; }
+  .lv-sec.drag-source { opacity:.25; }
+  .lv-row.drag-source, .lv-gline.drag-source { opacity:.25; }
+  .lv-row.drag-shift-down, .lv-gline.drag-shift-down, .lv-sec.drag-shift-down, .lv-gsec.drag-shift-down { transform:translateY(6px); transition:transform .18s ease; }
+  .lv-row.drag-shift-up, .lv-gline.drag-shift-up, .lv-sec.drag-shift-up, .lv-gsec.drag-shift-up { transform:translateY(-6px); transition:transform .18s ease; }
+  .lv-gsec.drag-source { opacity:.25; }
+
+  /* pinned list */
+  .lv-pin-head { display:flex; align-items:center; gap:10px; margin:0 2px 9px; }
+  .lv-pin-head .lv-ico { width:28px; height:28px; border-radius:8px; }
+  .lv-pin-name { font-size:17px; font-weight:800; letter-spacing:-.3px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lv-pin-chip { font-size:9.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--c); background:color-mix(in srgb,var(--c) 13%,transparent); padding:3px 7px; border-radius:8px; flex-shrink:0; }
+  .lv-pin-head .lv-grow { flex:1; }
+  .lv-pinned .lv-group { border-color:color-mix(in srgb,var(--c) 26%,var(--border-soft)); }
+
+  .lv-ico { border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:linear-gradient(135deg,var(--c),var(--cd)); box-shadow:0 3px 10px color-mix(in srgb,var(--c) 30%,transparent); line-height:1; }
+  .lv-ico svg { stroke:#fff; flex-shrink:0; }
+
+  /* tiles */
+  .lv-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .lv-tile { background:linear-gradient(160deg,color-mix(in srgb,var(--c) 10%,var(--surface)),var(--surface) 70%); border:1px solid color-mix(in srgb,var(--c) 22%,var(--border-soft)); border-radius:16px; padding:13px; min-height:108px; display:flex; flex-direction:column; cursor:pointer; transition:transform .12s, opacity .15s; min-width:0; -webkit-touch-callout:none; }
+  .lv-tile:active { transform:scale(.97); }
+  .lv-tile .lv-t-top { display:flex; justify-content:space-between; align-items:flex-start; gap:6px; }
+  .lv-tile .lv-ico { width:34px; height:34px; }
+  .lv-pill { font-size:10.5px; font-weight:700; color:#f59e0b; background:rgba(245,158,11,.12); border-radius:10px; padding:3px 7px; white-space:nowrap; }
+  .lv-t-name { margin-top:auto; font-size:15px; font-weight:700; letter-spacing:-.2px; padding-top:12px; line-height:1.25; overflow-wrap:anywhere; }
+  .lv-t-meta { font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+  .lv-tile.lv-new { border:1.5px dashed var(--border); background:transparent; align-items:center; justify-content:center; color:var(--text-dim); font-size:13px; }
+  .lv-tile.drag-source { opacity:.25; }
+  .lv-tile.lv-drop-target { outline:2px solid var(--c); outline-offset:2px; }
+
+  /* detail page */
+  .lv-page-in { animation:lvIn .28s cubic-bezier(.2,.8,.2,1) both; }
+  .lv-page-back { animation:lvBackIn .28s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes lvIn { from { opacity:0; transform:translateX(34px); } }
+  @keyframes lvBackIn { from { opacity:0; transform:translateX(-24px); } }
+  .lv-d-bar { display:flex; justify-content:space-between; align-items:center; margin:-8px -6px 6px; }
+  .lv-back { background:none; border:none; color:var(--c); font:600 14.5px 'Inter',sans-serif; display:flex; align-items:center; gap:2px; cursor:pointer; padding:8px 4px; }
+  .lv-back svg { width:19px; height:19px; }
+  .lv-more { background:none; border:none; color:var(--text-muted); font-size:20px; padding:4px 10px; cursor:pointer; line-height:1; }
+  .lv-d-title { display:flex; align-items:center; gap:12px; margin:2px 2px 8px; }
+  .lv-d-title .lv-ico { width:42px; height:42px; border-radius:12px; }
+  .lv-d-title h2 { font-size:23px; font-weight:800; letter-spacing:-.6px; line-height:1.15; }
+  .lv-d-title p { font-size:12px; color:var(--text-muted); margin-top:2px; }
+  .lv-new-sec { display:block; width:100%; text-align:center; color:var(--text-dim); font:500 13px 'Inter',sans-serif; margin-top:16px; padding:12px; background:none; border:1.5px dashed var(--border); border-radius:12px; cursor:pointer; }
+  .lv-empty { color:var(--text-muted); font-size:13px; padding:14px 13px; background:var(--surface); }
+
+  /* bucket shelf */
+  .lv-shelf { display:flex; gap:7px; overflow-x:auto; margin:0 -18px; padding:1px 18px 3px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+  .lv-shelf::-webkit-scrollbar { display:none; }
+  .lv-trophy { flex:0 0 auto; max-width:200px; display:flex; align-items:center; gap:8px; background:color-mix(in srgb,var(--c) 9%,var(--surface)); border:1px solid color-mix(in srgb,var(--c) 24%,var(--border-soft)); border-radius:12px; padding:7px 11px 7px 9px; cursor:pointer; }
+  .lv-trophy:active { transform:scale(.97); }
+  .lv-trophy svg { width:14px; height:14px; color:var(--c); fill:var(--c); flex-shrink:0; }
+  .lv-tr-txt { font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lv-tr-when { font-size:10.5px; color:var(--text-muted); margin-top:1px; }
+  .lv-shelf-empty { color:var(--text-muted); font-size:12.5px; padding:2px 2px 4px; }
+
+  /* goals */
+  .lv-edit-bar { display:flex; justify-content:flex-end; margin:-12px -6px -6px; }
+  .lv-edit-btn { background:none; border:none; color:var(--text-dim); font:600 12.5px 'Inter',sans-serif; padding:6px 8px; cursor:pointer; }
+  .lv-goals.editing .lv-edit-btn { color:#fb923c; }
+  .lv-gsec { margin-top:14px; }
+  .lv-stem { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; font-weight:700; color:var(--c); margin:0 0 3px; min-height:24px; }
+  .lv-gline { display:flex; align-items:center; gap:12px; padding:7px 0; background:var(--bg); }
+  .lv-gline::before { content:''; width:3px; align-self:stretch; min-height:20px; border-radius:2px; background:linear-gradient(180deg,var(--c),var(--cd)); flex-shrink:0; }
+  .lv-gt { flex:1; min-width:0; font-size:17px; font-weight:700; letter-spacing:-.25px; line-height:1.25;
+           background:linear-gradient(100deg,#fff 30%,var(--cl)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lv-goals .lv-glist { background:none; border:none; border-radius:0; overflow:visible; }
+  .lv-goals .lv-glist > * + * { border-top:none; }
+  .lv-goals .lv-add { background:none; padding-left:0; }
+  .lv-goals .lv-add .lv-plus { width:15px; }
+  .lv-goals .lv-new-sec { margin-top:20px; }
+  .lv-goals-empty { color:var(--text-muted); font-size:14px; line-height:1.5; padding:30px 8px; text-align:center; }
+
+  /* toast + sheet */
+  .lv-toast { position:fixed; left:18px; right:84px; max-width:330px; bottom:calc(env(safe-area-inset-bottom, 0px) + 26px); display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface3); border:1px solid var(--border); color:var(--text); font-size:13px; padding:11px 14px; border-radius:14px; opacity:0; transform:translateY(12px); transition:all .25s; pointer-events:none; z-index:60; box-shadow:0 8px 30px rgba(0,0,0,.5); }
+  .lv-toast.show { opacity:1; transform:none; pointer-events:auto; }
+  .lv-toast button { background:none; border:none; color:#60a5fa; font:700 13px 'Inter',sans-serif; cursor:pointer; padding:2px 4px; }
+  .lv-sheet-sub { font-size:12px; color:var(--text-muted); margin:-10px 0 14px; }
+  #page-goals, #page-checklist, #page-bucket { padding-bottom:84px; }
+
 </style>
 </head>
 <body>
@@ -1903,6 +2032,10 @@
     <span class="focus-btn-label">Goals reviewed</span>
   </button>
 </div>
+
+<!-- LISTS v2: generic action sheet + undo toast -->
+<div class="modal-overlay" id="lvSheet" onclick="if(event.target===this)lvSheetClose()"></div>
+<div class="lv-toast" id="lvToast"><span id="lvToastMsg"></span><button id="lvToastUndo" onclick="lvDoUndo()">Undo</button></div>
 
 <!-- ITEM MODAL (add/edit goals & tasks) -->
 <div class="modal-overlay" id="itemModal" onclick="if(event.target===this)closeItemModal()">
@@ -2000,6 +2133,7 @@
     <div id="folderPickerExtras" style="display:none">
       <div class="habit-extras-label" style="margin-top:16px">Color</div>
       <div class="color-swatch-row" id="folderEditColorSwatches"></div>
+      <div id="feIconBlock">
       <div class="habit-extras-label" style="margin-top:16px">Icon</div>
       <div style="display:flex;gap:0;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:12px">
         <button id="feIconTabSvg" onclick="feSwitchIconTab('svg')" style="flex:1;padding:9px;border:none;border-radius:8px;background:var(--surface);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">Icons</button>
@@ -2017,6 +2151,7 @@
           maxlength="2"
           oninput="feOnEmojiInput(this.value)">
       </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeSectionEdit()">Cancel</button>
@@ -2028,7 +2163,7 @@
 <!-- DELETE SECTION CONFIRM -->
 <div class="modal-overlay" id="confirmDeleteModal" onclick="if(event.target===this)closeConfirmDelete()">
   <div class="modal">
-    <div class="modal-title">Delete section?</div>
+    <div class="modal-title" id="confirmDeleteTitle">Delete section?</div>
     <div style="font-size:14px;color:var(--text-muted);line-height:1.5;margin-bottom:18px">
       This will permanently delete <strong id="deleteSectionName" style="color:var(--text)"></strong> and all <span id="deleteSectionContentLabel">items</span> inside it. This cannot be undone.
     </div>
@@ -2151,7 +2286,8 @@ const defaultData = {
   prefs: { compactMode: false }   // remembered UI choices
 };
 
-function loadData() {
+function loadData() { return lvMigrate(loadDataRaw()); }
+function loadDataRaw() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
@@ -2231,8 +2367,10 @@ function updateDate() {
 const tabOrder = ['streaks', 'goals', 'checklist', 'bucket'];
 
 function switchTab(tab, fromSwipe = false) {
-  if (tab === currentTab) return;
+  if (tab === currentTab) { if (lvOpen) lvBack(); return; }
   openFolderIds.clear();
+  lvOpen = null;
+  lvGoalsEditing = false;
   const fromIdx = tabOrder.indexOf(currentTab);
   const toIdx = tabOrder.indexOf(tab);
   const dir = toIdx > fromIdx ? 1 : -1;
@@ -2261,6 +2399,8 @@ function switchTab(tab, fromSwipe = false) {
   document.addEventListener('touchstart', e => {
     // Don't track if a modal is open
     if (document.querySelector('.modal-overlay.open')) { tracking = false; return; }
+    if (e.target.closest && e.target.closest('.lv-shelf')) { tracking = false; return; }
+    lvDragged = false;
     if (e.touches.length !== 1) { tracking = false; return; }
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
@@ -2283,7 +2423,9 @@ function switchTab(tab, fromSwipe = false) {
     const t = e.changedTouches[0];
     const dx = t.clientX - startX;
     const dy = t.clientY - startY;
+    if (lvDragged) { tracking = false; return; }
     if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.8) {
+      if (lvOpen) { if (dx > 0) lvBack(); tracking = false; return; }
       const idx = tabOrder.indexOf(currentTab);
       if (dx < 0 && idx < tabOrder.length - 1) switchTab(tabOrder[idx+1], true);
       else if (dx > 0 && idx > 0) switchTab(tabOrder[idx-1], true);
@@ -2295,6 +2437,621 @@ function switchTab(tab, fromSwipe = false) {
 /* ─────────────────────────────────────────────────────
    RENDER
    ───────────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════
+   LISTS v2 — Goals / Checklist / Bucket
+   Data shape is unchanged from v4: each tab has sections[], where a
+   top-level entry is either a plain section {type:'tasks'|'goals', items}
+   or a folder {type:'folder', sections:[...]}. In the UI every top-level
+   entry is a "list" (a tile). New fields, all optional:
+     entry.color / entry.icon      — list color + icon (plain lists too)
+     tab.pinned                    — id of the list shown at the top (null = none)
+     bucket item.doneOn            — date it was starred
+     bucket item.shelved           — cleared onto the Done shelf
+   ══════════════════════════════════════════════════════════ */
+let lvOpen = null;            // { tab, id } — list drilled into
+let lvHomeScroll = 0;
+let lvGoalsEditing = false;
+let lvSheetBtns = [];
+let lvUndoFn = null, lvToastTimer = null;
+let lvPopId = null;
+let lvAnim = null;            // 'in' | 'back' — one-shot page animation
+
+const LV_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+const LV_STAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+const LV_CAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+const LV_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+const LV_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const LV_WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const LV_TITLE = { goals:'Goals', checklist:'Checklist', bucket:'Bucket' };
+
+/* Fills in list colors/icons and the default pinned list. Safe to run on
+   any data, any number of times. Declared as a function (hoisted) and uses
+   only literals because loadData() runs before the consts below exist. */
+function lvMigrate(d) {
+  const cyc = {
+    goals:     ['orange','purple','teal','blue','pink','green'],
+    checklist: ['yellow','orange','teal','indigo','pink','blue'],
+    bucket:    ['blue','teal','purple','pink','green','orange']
+  };
+  ['goals','checklist','bucket'].forEach(t => {
+    const tab = d && d[t];
+    if (!tab || !Array.isArray(tab.sections)) return;
+    let n = 0;
+    tab.sections.forEach(s => {
+      if (t === 'goals') { if (!s.color) s.color = cyc.goals[n % 6]; if (!Array.isArray(s.items)) s.items = []; n++; return; }
+      if (s.type === 'folder') {
+        if (!s.color) s.color = 'coral';
+        if (!s.icon) s.icon = 'folder';
+        if (!Array.isArray(s.sections)) s.sections = [];
+        s.sections.forEach(x => { if (!Array.isArray(x.items)) x.items = []; });
+        return;
+      }
+      if (!Array.isArray(s.items)) s.items = [];
+      if (!s.color) s.color = cyc[t][n % 6];
+      if (!s.icon) s.icon = 'list';
+      n++;
+    });
+    if (t !== 'goals' && !('pinned' in tab)) {
+      const first = tab.sections.find(s => s.type !== 'folder');
+      tab.pinned = first ? first.id : null;
+    }
+  });
+  return d;
+}
+
+/* ── lookups ─────────────────────────────────────────── */
+function lvEntry(tab, id) { return (data[tab].sections || []).find(s => s.id === id) || null; }
+function lvSecs(e) { return e.type === 'folder' ? (e.sections || []) : [e]; }
+function lvFind(tab, secId) {
+  for (const e of data[tab].sections) {
+    if (e.type === 'folder') { const s = (e.sections || []).find(x => x.id === secId); if (s) return { entry: e, sec: s }; }
+    else if (e.id === secId) return { entry: e, sec: e };
+  }
+  return null;
+}
+function lvFindItem(tab, itemId) {
+  for (const e of data[tab].sections) for (const s of lvSecs(e)) {
+    const it = (s.items || []).find(i => i.id === itemId);
+    if (it) return { entry: e, sec: s, item: it };
+  }
+  return null;
+}
+function lvPinned(tab) { const id = data[tab].pinned; return id ? lvEntry(tab, id) : null; }
+
+/* ── color + icon ────────────────────────────────────── */
+function lvMix(hex, amt) { // blend toward white
+  const n = parseInt(hex.slice(1), 16);
+  const ch = s => Math.round(((n >> s) & 255) + (255 - ((n >> s) & 255)) * amt);
+  return `#${((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0')}`;
+}
+function lvVars(e) { const c = folderColor(e); return `--c:${c};--cd:${darkenHex(c, 25)};--cl:${lvMix(c, .45)}`; }
+function lvIcon(e, px) {
+  if (e.icon && e.icon.startsWith('emoji:')) return `<span style="font-size:${Math.round(px * .55)}px">${e.icon.slice(6)}</span>`;
+  const found = FOLDER_SVGS.find(s => s.id === (e.icon || 'folder')) || FOLDER_SVGS[0];
+  const sz = Math.round(px * .5);
+  return found.svg.replace('<svg ', `<svg width="${sz}" height="${sz}" `);
+}
+
+/* ── dates ───────────────────────────────────────────── */
+function lvParse(ds) { const [y, m, d] = ds.split('-').map(Number); return new Date(y, m - 1, d); }
+function lvDayDiff(ds) { const t = new Date(); t.setHours(0, 0, 0, 0); return Math.round((lvParse(ds) - t) / 86400000); }
+function lvDue(ds) {
+  const d = lvDayDiff(ds), dt = lvParse(ds);
+  if (d < 0) return { cls: 'late', t: d >= -6 ? `Was due ${LV_WD[dt.getDay()]}` : `Was due ${LV_MON[dt.getMonth()]} ${dt.getDate()}` };
+  if (d === 0) return { cls: 'soon', t: 'Today' };
+  if (d === 1) return { cls: 'soon', t: 'Tomorrow' };
+  if (d <= 6) return { cls: '', t: LV_WD[dt.getDay()] };
+  return { cls: '', t: `${LV_MON[dt.getMonth()]} ${dt.getDate()}` };
+}
+const lvIsDueSoon = (sec, it) => sec.type !== 'goals' && it.deadline && !it.shelved && lvDayDiff(it.deadline) <= 7;
+
+/* ── counts ──────────────────────────────────────────── */
+function lvCounts(tab, e) {
+  let left = 0, done = 0, due = 0, notes = 0;
+  lvSecs(e).forEach(s => (s.items || []).forEach(it => {
+    if (s.type === 'goals') { notes++; return; }
+    if (it.checked) done++; else left++;
+    if (!it.checked && lvIsDueSoon(s, it)) due++;
+  }));
+  return { left, done, due, notes };
+}
+function lvMeta(tab, e) {
+  const c = lvCounts(tab, e);
+  if (tab === 'bucket') return `${c.left} to go${c.done ? ` · ${c.done} done` : ''}`;
+  if (!c.left && !c.done && c.notes) return `${c.notes} item${c.notes === 1 ? '' : 's'}`;
+  return c.left ? `${c.left} to do` : (c.done ? 'All clear' : 'Empty');
+}
+
+/* ══ RENDER ════════════════════════════════════════════ */
+function renderGoalTab(tab) {
+  const page = document.getElementById('page-' + tab);
+  if (!page) return;
+  if (tab === 'goals') page.innerHTML = lvGoalsHtml();
+  else {
+    const e = lvOpen && lvOpen.tab === tab ? lvEntry(tab, lvOpen.id) : null;
+    if (lvOpen && !e) lvOpen = null;
+    page.innerHTML = e ? lvDetailHtml(tab, e) : lvHomeHtml(tab);
+  }
+  page.classList.remove('lv-page-in', 'lv-page-back');
+  if (lvAnim) { void page.offsetWidth; page.classList.add(lvAnim === 'in' ? 'lv-page-in' : 'lv-page-back'); lvAnim = null; }
+  lvPopId = null;
+  lvAttachDrags(page, tab);
+}
+
+function lvRowHtml(tab, e, sec, it, opts = {}) {
+  const bucket = tab === 'bucket', checkable = sec.type !== 'goals';
+  const due = checkable && !bucket && it.deadline && !it.checked ? lvDue(it.deadline) : null;
+  const state = !checkable ? 'lv-nocheck' : it.checked ? (bucket ? 'lv-starred' : 'lv-done') : '';
+  const mark = !checkable ? '' : bucket ? `<span class="lv-star">${LV_STAR}</span>` : `<span class="lv-chk">${LV_CHECK}</span>`;
+  return `<div class="lv-row ${state} ${lvPopId === it.id ? 'lv-pop' : ''}" style="${lvVars(e)}" data-lvid="${it.id}"${opts.nodrag ? '' : ' data-drag="1"'}${checkable ? ` onclick="lvToggle('${tab}','${it.id}')"` : ''}>
+    ${mark}<div class="lv-txt">${escHtml(it.text)}${opts.tag ? `<div class="lv-tag"><i></i>${escHtml(e.name)}</div>` : ''}</div>
+    ${due ? `<div class="lv-due ${due.cls}">${due.t}</div>` : ''}
+    <button class="lv-dots" onclick="event.stopPropagation();lvItemMenu('${tab}','${it.id}')" aria-label="Item options">⋮</button></div>`;
+}
+
+function lvAddRowHtml(tab, e, sec) {
+  const label = tab === 'goals' ? 'Add goal' : tab === 'bucket' ? 'Add to the list' : 'Add item';
+  return `<div class="lv-add" style="${lvVars(e)}" data-tab="${tab}" data-sec="${sec.id}" onclick="lvOpenAdd(this)"><span class="lv-plus">＋</span><span>${label}</span></div>`;
+}
+
+function lvSectionHtml(tab, e, sec, showHead) {
+  const bucket = tab === 'bucket', checkable = sec.type !== 'goals';
+  const items = (sec.items || []).filter(i => !i.shelved);
+  const left = items.filter(i => !i.checked).length;
+  const marked = checkable ? items.filter(i => i.checked).length : 0;
+  let h = `<div class="lv-sec" data-lvid="${sec.id}" style="${lvVars(e)}">`;
+  if (showHead) {
+    const meta = checkable ? (left ? `${left} ${bucket ? 'to go' : 'left'}` : (items.length ? 'All clear' : '')) : `${items.length} item${items.length === 1 ? '' : 's'}`;
+    h += `<div class="lv-sub"><span class="lv-sub-name">${escHtml(sec.name)}</span><em>${meta}</em>
+      <button class="lv-dots lv-sec-dots" onclick="lvSectionMenu('${tab}','${e.id}','${sec.id}')" aria-label="Section options">⋮</button></div>`;
+  }
+  h += `<div class="lv-group" data-sec="${sec.id}">` + items.map(it => lvRowHtml(tab, e, sec, it)).join('') + lvAddRowHtml(tab, e, sec);
+  if (marked) h += `<div class="lv-clear-row"><span>${marked} ${bucket ? 'starred' : 'done'}</span><button class="lv-clear-btn" onclick="lvClear('${tab}','${sec.id}')">Clear</button></div>`;
+  return h + `</div></div>`;
+}
+
+function lvListBody(tab, e) {
+  const secs = lvSecs(e);
+  if (e.type === 'folder' && !secs.length) return `<div class="lv-group"><div class="lv-empty">No sections yet.</div></div>`;
+  return secs.map(s => lvSectionHtml(tab, e, s, e.type === 'folder')).join('');
+}
+
+function lvHomeHtml(tab) {
+  const pinned = lvPinned(tab);
+  let h = '';
+  if (tab === 'checklist') {
+    const rows = [];
+    data.checklist.sections.forEach(e => {
+      if (e === pinned) return;
+      lvSecs(e).forEach(s => (s.items || []).forEach(it => { if (lvIsDueSoon(s, it)) rows.push({ e, s, it }); }));
+    });
+    rows.sort((a, b) => a.it.deadline.localeCompare(b.it.deadline));
+    if (rows.length) h += `<div class="lv-block"><div class="lv-eyebrow">Due soon<em>from your other lists</em></div><div class="lv-group">${rows.map(r => lvRowHtml(tab, r.e, r.s, r.it, { tag: true, nodrag: true })).join('')}</div></div>`;
+  } else {
+    const shelf = [];
+    data.bucket.sections.forEach(e => lvSecs(e).forEach(s => (s.items || []).forEach(it => { if (it.shelved) shelf.push({ e, it }); })));
+    shelf.sort((a, b) => (b.it.doneOn || '').localeCompare(a.it.doneOn || ''));
+    h += `<div class="lv-block"><div class="lv-eyebrow">Done so far<em>${shelf.length ? `${shelf.length} and counting` : ''}</em></div>`;
+    h += shelf.length
+      ? `<div class="lv-shelf">${shelf.map(({ e, it }) => {
+          const when = it.doneOn ? `${LV_MON[lvParse(it.doneOn).getMonth()]} ${lvParse(it.doneOn).getFullYear()}` : '';
+          return `<div class="lv-trophy" style="${lvVars(e)}" onclick="lvShelfMenu('${it.id}')">${LV_STAR}<div style="min-width:0"><div class="lv-tr-txt">${escHtml(it.text)}</div>${when ? `<div class="lv-tr-when">${when}</div>` : ''}</div></div>`;
+        }).join('')}</div>`
+      : `<div class="lv-shelf-empty">Star something and press Clear to start your shelf.</div>`;
+    h += `</div>`;
+  }
+  if (pinned) {
+    h += `<div class="lv-block lv-pinned" style="${lvVars(pinned)}">
+      <div class="lv-pin-head"><div class="lv-ico">${lvIcon(pinned, 28)}</div><div class="lv-pin-name">${escHtml(pinned.name)}</div><span class="lv-pin-chip">Pinned</span><div class="lv-grow"></div>
+        <button class="lv-more" onclick="lvListMenu('${tab}','${pinned.id}')" aria-label="List options">⋯</button></div>
+      ${lvListBody(tab, pinned)}</div>`;
+  }
+  const rest = data[tab].sections.filter(e => e !== pinned);
+  h += `<div class="lv-eyebrow">${tab === 'checklist' ? 'Lists' : 'Collections'}</div><div class="lv-tiles">`;
+  h += rest.map(e => {
+    const c = lvCounts(tab, e);
+    return `<div class="lv-tile" style="${lvVars(e)}" data-lvid="${e.id}" onclick="lvOpenList('${tab}','${e.id}')">
+      <div class="lv-t-top"><div class="lv-ico">${lvIcon(e, 34)}</div>${tab === 'checklist' && c.due ? `<span class="lv-pill">${c.due} due</span>` : ''}</div>
+      <div class="lv-t-name">${escHtml(e.name)}</div><div class="lv-t-meta">${lvMeta(tab, e)}</div></div>`;
+  }).join('');
+  h += `<div class="lv-tile lv-new" onclick="lvNewList('${tab}')">＋ New list</div></div>`;
+  return h;
+}
+
+function lvDetailHtml(tab, e) {
+  return `<div class="lv-d-bar" style="${lvVars(e)}"><button class="lv-back" onclick="lvBack()">${LV_BACK}${LV_TITLE[tab]}</button>
+      <button class="lv-more" onclick="lvListMenu('${tab}','${e.id}')" aria-label="List options">⋯</button></div>
+    <div class="lv-d-title" style="${lvVars(e)}"><div class="lv-ico">${lvIcon(e, 42)}</div><div style="min-width:0"><h2>${escHtml(e.name)}</h2><p>${lvMeta(tab, e)}</p></div></div>
+    ${lvListBody(tab, e)}
+    <button class="lv-new-sec" onclick="lvNewSection('${tab}','${e.id}')">＋ New section</button>`;
+}
+
+function lvGoalsHtml() {
+  const ed = lvGoalsEditing, secs = data.goals.sections;
+  let h = `<div class="lv-goals ${ed ? 'editing' : ''}"><div class="lv-edit-bar"><button class="lv-edit-btn" onclick="lvToggleGoalsEdit()">${ed ? 'Done' : 'Edit'}</button></div>`;
+  if (!secs.length && !ed) h += `<div class="lv-goals-empty">Tap <b>Edit</b> to add your first section.</div>`;
+  secs.forEach(s => {
+    h += `<div class="lv-gsec" data-lvid="${s.id}" style="${lvVars(s)}"><div class="lv-stem"><span>${escHtml(s.name)}</span>${ed ? `<button class="lv-dots lv-gsec-dots" onclick="lvGoalSectionMenu('${s.id}')" aria-label="Section options">⋮</button>` : ''}</div>
+      <div class="lv-group lv-glist" data-sec="${s.id}">` +
+      (s.items || []).map(it => lvGoalLineHtml(s, it)).join('') +
+      (ed ? lvAddRowHtml('goals', s, s) : '') + `</div></div>`;
+  });
+  if (ed) h += `<button class="lv-new-sec" onclick="lvNewGoalSection()">＋ New section</button>`;
+  return h + `</div>`;
+}
+function lvGoalLineHtml(s, it) {
+  return `<div class="lv-gline" data-lvid="${it.id}" data-drag="1"><span class="lv-gt">${escHtml(it.text)}</span>${lvGoalsEditing ? `<button class="lv-dots" onclick="event.stopPropagation();lvItemMenu('goals','${it.id}')" aria-label="Goal options">⋮</button>` : ''}</div>`;
+}
+
+/* ── drag: reuses the app's long-press-the-⋮ system ── */
+function lvAttachDrags(page, tab) {
+  const reorder = arrFn => ({ type: 'lv', tab, arr: arrFn });
+  page.querySelectorAll('.lv-group[data-sec]').forEach(g => {
+    const secId = g.dataset.sec;
+    g.querySelectorAll(':scope > [data-drag] > .lv-dots').forEach(btn => {
+      const row = btn.parentElement;
+      attachDragToDotsBtn(btn, row, { ...reorder(() => { const f = lvFind(tab, secId); return f ? f.sec.items : null; }), sel: row.classList.contains('lv-gline') ? '.lv-gline' : '.lv-row[data-drag]' });
+    });
+  });
+  page.querySelectorAll('.lv-sec-dots').forEach(btn => {
+    const secEl = btn.closest('.lv-sec'), f = lvFind(tab, secEl.dataset.lvid);
+    if (f && f.entry.type === 'folder') attachDragToDotsBtn(btn, secEl, { ...reorder(() => f.entry.sections), sel: '.lv-sec' });
+  });
+  page.querySelectorAll('.lv-gsec-dots').forEach(btn => {
+    attachDragToDotsBtn(btn, btn.closest('.lv-gsec'), { ...reorder(() => data.goals.sections), sel: '.lv-gsec' });
+  });
+  page.querySelectorAll('.lv-tile[data-lvid]').forEach(t => {
+    attachDragToDotsBtn(t, t, { ...reorder(() => data[tab].sections), sel: '.lv-tile[data-lvid]', grid: true });
+  });
+}
+/* Called from moveDrag for ctx.type === 'lv' */
+function lvMoveDrag(cx, cy, ctx) {
+  const src = dragState.sourceEl, parent = src.parentElement;
+  const sibs = Array.from(parent.querySelectorAll(`:scope > ${ctx.sel}:not(.drag-source)`));
+  sibs.forEach(s => s.classList.remove('drag-shift-up', 'drag-shift-down', 'lv-drop-target'));
+  dragInsertLineEl.style.display = 'none';
+  dragState.insertBefore = null;
+  let target = null, pos = 'before';
+  for (const s of sibs) {
+    const r = s.getBoundingClientRect();
+    if (ctx.grid) {
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) { target = s; pos = cx < r.left + r.width / 2 ? 'before' : 'after'; break; }
+    } else if (cy >= r.top - 10 && cy <= r.bottom + 10) { target = s; pos = cy < r.top + r.height / 2 ? 'before' : 'after'; break; }
+  }
+  if (!target) return;
+  if (ctx.grid) target.classList.add('lv-drop-target');
+  else {
+    const r = target.getBoundingClientRect();
+    target.classList.add(pos === 'before' ? 'drag-shift-down' : 'drag-shift-up');
+    dragInsertLineEl.style.display = 'block';
+    dragInsertLineEl.style.position = 'fixed';
+    dragInsertLineEl.style.left = (r.left + 8) + 'px';
+    dragInsertLineEl.style.width = (r.width - 16) + 'px';
+    dragInsertLineEl.style.top = (pos === 'before' ? r.top - 3 : r.bottom + 1) + 'px';
+  }
+  dragState.insertBefore = { target, pos };
+}
+/* Called from applyReorder for ctx.type === 'lv' */
+function lvApplyReorder(ctx, insertBefore) {
+  const arr = ctx.arr();
+  const fromId = dragState.sourceEl.dataset.lvid, toId = insertBefore.target.dataset.lvid;
+  document.querySelectorAll('.lv-drop-target').forEach(el => el.classList.remove('lv-drop-target'));
+  dragState = null;
+  if (!arr) { render(); return; }
+  const from = arr.findIndex(x => x.id === fromId);
+  if (from < 0 || fromId === toId) { render(); return; }
+  const [moved] = arr.splice(from, 1);
+  let to = arr.findIndex(x => x.id === toId);
+  if (to < 0) { arr.splice(from, 0, moved); render(); return; }
+  if (insertBefore.pos === 'after') to++;
+  arr.splice(to, 0, moved);
+  saveData(data);
+  render();
+}
+
+/* ══ NAVIGATION ════════════════════════════════════════ */
+function lvOpenList(tab, id) {
+  if (dragState) return;
+  lvHomeScroll = window.scrollY;
+  lvOpen = { tab, id };
+  lvAnim = 'in';
+  renderGoalTab(tab);
+  window.scrollTo(0, 0);
+}
+function lvBack() {
+  if (!lvOpen) return;
+  const tab = lvOpen.tab;
+  lvOpen = null;
+  lvAnim = 'back';
+  renderGoalTab(tab);
+  const y = lvHomeScroll;
+  window.scrollTo(0, y);
+  requestAnimationFrame(() => window.scrollTo(0, y));
+}
+function lvToggleGoalsEdit() { lvGoalsEditing = !lvGoalsEditing; render(); }
+
+/* ══ ITEMS ═════════════════════════════════════════════ */
+function lvToggle(tab, itemId) {
+  if (dragState) return;
+  const f = lvFindItem(tab, itemId); if (!f) return;
+  f.item.checked = !f.item.checked;
+  if (tab === 'bucket') { if (f.item.checked) f.item.doneOn = todayStr(); else delete f.item.doneOn; }
+  lvPopId = f.item.checked ? itemId : null;
+  saveData(data);
+  render();
+}
+
+function lvClear(tab, secId) {
+  const f = lvFind(tab, secId); if (!f) return;
+  if (tab === 'bucket') {
+    const moved = f.sec.items.filter(i => i.checked && !i.shelved);
+    moved.forEach(i => { i.shelved = true; if (!i.doneOn) i.doneOn = todayStr(); });
+    saveData(data); render();
+    lvToast(`Moved ${moved.length} to your Done shelf`, () => moved.forEach(i => { delete i.shelved; }));
+  } else {
+    const before = f.sec.items.slice();
+    const n = before.filter(i => i.checked).length;
+    f.sec.items = f.sec.items.filter(i => !i.checked);
+    saveData(data); render();
+    lvToast(`Cleared ${n} done item${n === 1 ? '' : 's'}`, () => { const g = lvFind(tab, secId); if (g) g.sec.items = before; });
+  }
+}
+
+/* Inline add: the row turns into an input. Enter adds and stays open for
+   the next one; the new row is inserted in place so the keyboard stays up. */
+function lvOpenAdd(el) {
+  if (el.classList.contains('open')) return;
+  const tab = el.dataset.tab, f = lvFind(tab, el.dataset.sec); if (!f) return;
+  const withDate = tab === 'checklist' && f.sec.type !== 'goals';
+  el.classList.add('open');
+  el.onclick = null;
+  el.innerHTML = `<span class="lv-plus">＋</span><input class="lv-add-in" enterkeyhint="done" autocomplete="off" placeholder="${tab === 'bucket' ? 'Someday I want to…' : tab === 'goals' ? 'New goal' : 'New item'}">` +
+    (withDate ? `<span class="lv-when"></span><label class="lv-cal" aria-label="Due date">${LV_CAL}<input type="date" class="lv-add-date"></label>` : '');
+  const inp = el.querySelector('.lv-add-in'), dt = el.querySelector('.lv-add-date');
+  const maybeClose = () => setTimeout(() => { if (el.isConnected && !el.contains(document.activeElement)) lvCommitAdd(el, false); }, 160);
+  inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); lvCommitAdd(el, true); }
+    else if (ev.key === 'Escape') { inp.value = ''; inp.blur(); }
+  });
+  inp.addEventListener('blur', maybeClose);
+  if (dt) {
+    dt.addEventListener('change', () => {
+      el.dataset.due = dt.value || '';
+      el.querySelector('.lv-when').textContent = dt.value ? lvDue(dt.value).t : '';
+      el.querySelector('.lv-cal').classList.toggle('has', !!dt.value);
+      inp.focus();
+    });
+    dt.addEventListener('blur', maybeClose);
+  }
+  inp.focus();
+}
+function lvCommitAdd(el, keepOpen) {
+  if (el.dataset.committing) return;
+  const tab = el.dataset.tab, f = lvFind(tab, el.dataset.sec);
+  const inp = el.querySelector('.lv-add-in');
+  if (!f || !inp) return;
+  const text = inp.value.trim();
+  if (text) {
+    const item = { id: uid(), text, checked: false };
+    if (el.dataset.due) item.deadline = el.dataset.due;
+    f.sec.items.push(item);
+    saveData(data);
+    el.insertAdjacentHTML('beforebegin', tab === 'goals' ? lvGoalLineHtml(f.sec, item) : lvRowHtml(tab, f.entry, f.sec, item));
+    const row = el.previousElementSibling, btn = row && row.querySelector('.lv-dots');
+    if (btn) attachDragToDotsBtn(btn, row, { type: 'lv', tab, arr: () => { const g = lvFind(tab, f.sec.id); return g ? g.sec.items : null; }, sel: tab === 'goals' ? '.lv-gline' : '.lv-row[data-drag]' });
+  }
+  if (text) {   // keep the counts next to the list name honest while the row stays open
+    const meta = document.querySelector(`#page-${tab} .lv-d-title p`);
+    if (meta && lvOpen) { const e = lvEntry(tab, lvOpen.id); if (e) meta.textContent = lvMeta(tab, e); }
+  }
+  if (keepOpen && text) {
+    inp.value = '';
+    delete el.dataset.due;
+    const w = el.querySelector('.lv-when'); if (w) w.textContent = '';
+    const c = el.querySelector('.lv-cal'); if (c) c.classList.remove('has');
+    const d = el.querySelector('.lv-add-date'); if (d) d.value = '';
+    return;
+  }
+  el.dataset.committing = '1';
+  // Another add row is taking focus: close this one in place, don't re-render under it.
+  if (document.activeElement && document.activeElement.classList.contains('lv-add-in')) {
+    el.outerHTML = lvAddRowHtml(tab, f.entry, f.sec);
+    return;
+  }
+  render();
+}
+
+function lvItemMenu(tab, itemId) {
+  if (dragState) return;
+  const f = lvFindItem(tab, itemId); if (!f) return;
+  const btns = [{ label: 'Edit', fn: () => lvEditItem(tab, itemId, false) }];
+  if (tab === 'checklist' && f.sec.type !== 'goals') btns.push({ label: f.item.deadline ? 'Change due date' : 'Add due date', fn: () => lvEditItem(tab, itemId, true) });
+  btns.push({ label: 'Delete', danger: true, fn: () => {
+    const g = lvFindItem(tab, itemId); if (!g) return;
+    const idx = g.sec.items.indexOf(g.item);
+    g.sec.items.splice(idx, 1);
+    saveData(data); render();
+    lvToast('Deleted', () => { g.sec.items.splice(Math.min(idx, g.sec.items.length), 0, g.item); });
+  } });
+  lvSheet(f.item.text, btns);
+}
+function lvEditItem(tab, itemId, focusDate) {
+  const f = lvFindItem(tab, itemId); if (!f) return;
+  if (f.entry.type === 'folder') openEditFolderItemModal(tab, f.entry.id, f.sec.id, itemId);
+  else openEditItemModal(tab, f.sec.id, itemId);
+  if (tab !== 'checklist') document.getElementById('itemModalDateRow').classList.remove('visible');
+  if (focusDate) setTimeout(() => {
+    const d = document.getElementById('itemModalDateInput');
+    d.focus();
+    try { if (d.showPicker) d.showPicker(); } catch (err) {}
+  }, 340);
+}
+
+function lvShelfMenu(itemId) {
+  const f = lvFindItem('bucket', itemId); if (!f) return;
+  const when = f.item.doneOn ? `Done ${LV_MON[lvParse(f.item.doneOn).getMonth()]} ${lvParse(f.item.doneOn).getFullYear()} · ` : '';
+  lvSheet(f.item.text, [
+    { label: 'Not done yet', fn: () => {
+      f.item.checked = false; delete f.item.shelved; delete f.item.doneOn;
+      saveData(data); render(); lvToast(`Back in ${f.entry.type === 'folder' ? f.sec.name : f.entry.name}`);
+    } },
+    { label: 'Delete', danger: true, fn: () => {
+      const idx = f.sec.items.indexOf(f.item);
+      f.sec.items.splice(idx, 1); saveData(data); render();
+      lvToast('Deleted', () => { f.sec.items.splice(Math.min(idx, f.sec.items.length), 0, f.item); });
+    } }
+  ], `${when}${f.entry.name}`);
+}
+
+/* ══ LISTS + SECTIONS ══════════════════════════════════ */
+function lvListMenu(tab, id) {
+  const e = lvEntry(tab, id); if (!e) return;
+  const isPinned = data[tab].pinned === id;
+  lvSheet(e.name, [
+    isPinned
+      ? { label: 'Unpin from the top', fn: () => { data[tab].pinned = null; saveData(data); render(); lvToast(`${e.name} moved back to your lists`); } }
+      : { label: 'Pin to top', fn: () => { data[tab].pinned = id; saveData(data); if (lvOpen) { lvOpen = null; lvAnim = 'back'; } renderGoalTab(tab); window.scrollTo(0, 0); lvToast(`${e.name} is pinned to the top`); } },
+    { label: 'Edit name, color & icon', fn: () => {
+      sectionActionCtx = { tab, sectionId: id };
+      openFolderEdit();
+      setTimeout(() => { document.getElementById('sectionEditTitle').textContent = 'Edit list'; }, 220);
+    } },
+    { label: 'Delete list', danger: true, fn: () => lvConfirmDelete(tab, id, null, 'list') }
+  ]);
+}
+
+function lvSectionMenu(tab, entryId, secId) {
+  const f = lvFind(tab, secId); if (!f) return;
+  lvSheet(f.sec.name, [
+    { label: 'Rename section', fn: () => { folderSectionActionCtx = { tab, folderId: entryId, sectionId: secId }; renameSectionFromAction(); } },
+    { label: 'Delete section', danger: true, fn: () => lvConfirmDelete(tab, secId, entryId, 'section') }
+  ]);
+}
+
+function lvGoalSectionMenu(secId) {
+  const s = lvEntry('goals', secId); if (!s) return;
+  lvSheet(s.name, [
+    { label: 'Edit name & color', fn: () => lvGoalSectionEditor(s) },
+    { label: 'Delete section', danger: true, fn: () => lvConfirmDelete('goals', secId, null, 'section') }
+  ]);
+}
+
+function lvConfirmDelete(tab, sectionId, folderId, noun) {
+  const e = folderId ? lvFind(tab, sectionId).sec : lvEntry(tab, sectionId);
+  const m = document.getElementById('confirmDeleteModal');
+  document.getElementById('confirmDeleteTitle').textContent = `Delete ${noun}?`;
+  document.getElementById('deleteSectionName').textContent = e.name;
+  document.getElementById('deleteSectionContentLabel').textContent = e.type === 'folder' ? 'sections and items' : 'items';
+  m.dataset.tab = tab;
+  m.dataset.sectionId = sectionId;
+  if (folderId) m.dataset.folderId = folderId; else delete m.dataset.folderId;
+  m.classList.add('open');
+}
+/* Called by executeDeleteSection after it removes a top-level entry */
+function lvAfterDelete(tab, sectionId) {
+  if (data[tab] && data[tab].pinned === sectionId) data[tab].pinned = null;
+  if (lvOpen && lvOpen.tab === tab && lvOpen.id === sectionId) { lvOpen = null; lvAnim = 'back'; }
+}
+
+/* Shared setup for the section editor modal (name + optional type / color / icon) */
+function lvOpenEditor(ctx, title, name, { type = false, color = false, icon = false } = {}) {
+  sectionEditCtx = ctx;
+  document.getElementById('sectionEditTitle').textContent = title;
+  document.getElementById('sectionEditInput').value = name || '';
+  const typeRow = document.getElementById('sectionTypeRow');
+  typeRow.style.display = type ? 'flex' : 'none';
+  document.querySelectorAll('.type-pick-btn').forEach(b => {
+    b.style.display = b.dataset.type === 'folder' ? 'none' : '';
+    if (b.dataset.type === 'tasks') b.textContent = '✓ Checkboxes';
+    if (b.dataset.type === 'goals') b.textContent = '◎ No checkboxes';
+    const on = b.dataset.type === (ctx.newType || 'tasks');
+    b.classList.toggle('active', on);
+    b.style.background = on ? 'rgba(255,77,126,0.12)' : 'var(--surface2)';
+    b.style.borderColor = on ? 'var(--pink)' : 'var(--border)';
+    b.style.color = on ? 'var(--pink)' : 'var(--text-muted)';
+  });
+  document.getElementById('sectionTypeHint').style.display = 'none';
+  const extras = document.getElementById('folderPickerExtras');
+  extras.style.display = color ? 'block' : 'none';
+  document.getElementById('feIconBlock').style.display = icon ? '' : 'none';
+  if (color) feRenderFolderPickers();
+  lockScroll();
+  document.getElementById('sectionEditModal').classList.add('open');
+  setTimeout(() => { const inp = document.getElementById('sectionEditInput'); inp.focus(); if (name) inp.select(); }, 320);
+}
+function lvNewList(tab) {
+  const used = data[tab].sections.map(s => s.color);
+  const pick = HABIT_PALETTE.map(p => p.id).find(c => !used.includes(c)) || 'blue';
+  lvOpenEditor({ mode: 'lv-new-list', tab, newType: 'tasks', folderColor: pick, folderIcon: 'list' }, 'New list', '', { type: true, color: true, icon: true });
+}
+function lvNewSection(tab, entryId) {
+  lvOpenEditor({ mode: 'lv-new-sec', tab, entryId, newType: 'tasks' }, 'New section', '', { type: true });
+}
+function lvNewGoalSection() {
+  const used = data.goals.sections.map(s => s.color);
+  const pick = HABIT_PALETTE.map(p => p.id).find(c => !used.includes(c)) || 'orange';
+  lvOpenEditor({ mode: 'lv-goal-sec', tab: 'goals', folderColor: pick, folderIcon: 'folder' }, 'New section', '', { color: true });
+}
+function lvGoalSectionEditor(s) {
+  lvOpenEditor({ mode: 'lv-goal-sec', tab: 'goals', sectionId: s.id, folderColor: s.color || 'orange', folderIcon: 'folder' }, 'Edit section', s.name, { color: true });
+}
+/* Called at the top of saveSectionEdit. Returns true if it handled the save. */
+function lvSaveSectionEdit(name) {
+  const ctx = sectionEditCtx;
+  if (!ctx || !String(ctx.mode).startsWith('lv-')) return false;
+  const tab = ctx.tab;
+  if (ctx.mode === 'lv-new-list') {
+    data[tab].sections.push({ id: 's_' + uid(), name, type: ctx.newType === 'goals' ? 'goals' : 'tasks', color: ctx.folderColor || 'blue', icon: ctx.folderIcon || 'list', items: [] });
+  } else if (ctx.mode === 'lv-new-sec') {
+    const e = lvEntry(tab, ctx.entryId); if (!e) return true;
+    if (e.type !== 'folder') {
+      // A one-section list grows into a multi-section list. Its id stays the
+      // same (so pinning survives); its items move into a first section.
+      const first = { id: 's_' + uid(), name: e.name, type: e.type || 'tasks', items: e.items || [] };
+      delete e.items;
+      e.type = 'folder';
+      e.sections = [first];
+    }
+    e.sections.push({ id: 's_' + uid(), name, type: ctx.newType === 'goals' ? 'goals' : 'tasks', items: [] });
+  } else if (ctx.mode === 'lv-goal-sec') {
+    if (ctx.sectionId) { const s = lvEntry('goals', ctx.sectionId); if (s) { s.name = name; s.color = ctx.folderColor; } }
+    else data.goals.sections.push({ id: 's_' + uid(), name, type: 'goals', color: ctx.folderColor || 'orange', items: [] });
+  }
+  saveData(data);
+  closeSectionEdit();
+  render();
+  return true;
+}
+
+/* ══ SHEET + TOAST ═════════════════════════════════════ */
+function lvSheet(title, buttons, sub) {
+  lvSheetBtns = buttons;
+  const t = title.length > 48 ? title.slice(0, 48) + '…' : title;
+  document.getElementById('lvSheet').innerHTML = `<div class="modal action-sheet"><div class="modal-title">${escHtml(t)}</div>${sub ? `<div class="lv-sheet-sub">${escHtml(sub)}</div>` : ''}` +
+    buttons.map((b, i) => `<button class="action-sheet-btn${b.danger ? ' danger' : ''}" onclick="lvSheetPick(${i})">${escHtml(b.label)}</button>`).join('') +
+    `<button class="btn-cancel" onclick="lvSheetClose()" style="width:100%;margin-top:6px">Cancel</button></div>`;
+  document.getElementById('lvSheet').classList.add('open');
+}
+function lvSheetClose() { document.getElementById('lvSheet').classList.remove('open'); }
+function lvSheetPick(i) { const b = lvSheetBtns[i]; lvSheetClose(); if (b && b.fn) setTimeout(b.fn, 180); }
+
+function lvToast(msg, undo) {
+  const t = document.getElementById('lvToast');
+  document.getElementById('lvToastMsg').textContent = msg;
+  document.getElementById('lvToastUndo').hidden = !undo;
+  lvUndoFn = undo || null;
+  t.classList.add('show');
+  clearTimeout(lvToastTimer);
+  lvToastTimer = setTimeout(() => { t.classList.remove('show'); lvUndoFn = null; }, undo ? 5000 : 1800);
+}
+function lvDoUndo() {
+  if (!lvUndoFn) return;
+  const fn = lvUndoFn; lvUndoFn = null;
+  fn(); saveData(data); render();
+  document.getElementById('lvToast').classList.remove('show');
+}
+
 /* Re-rendering replaces innerHTML wholesale, which drops the scroll position.
    Capture it before and restore after so adding an item deep in a long list
    (especially inside a folder) doesn't fling you to the bottom of the page. */
@@ -2328,7 +3085,7 @@ function render(opts) {
   else withScrollPreserved(draw);
 }
 
-function renderGoalTab(tab) {
+function renderGoalTabLegacy(tab) {
   const page = document.getElementById('page-' + tab);
   const tabData = data[tab];
   let html = '';
@@ -2908,8 +3665,9 @@ function pickSectionType(type) {
   // Show/hide folder pickers
   const extras = document.getElementById('folderPickerExtras');
   if (extras) {
-    extras.style.display = type === 'folder' ? 'block' : 'none';
-    if (type === 'folder') feRenderFolderPickers();
+    const wantsPickers = type === 'folder' || sectionEditCtx.mode === 'lv-new-list';
+    extras.style.display = wantsPickers ? 'block' : 'none';
+    if (wantsPickers) feRenderFolderPickers();
   }
 }
 
@@ -2917,6 +3675,7 @@ function saveSectionEdit() {
   if (!sectionEditCtx) return;
   const name = document.getElementById('sectionEditInput').value.trim();
   if (!name) return;
+  if (lvSaveSectionEdit(name)) return;
   if (sectionEditCtx.mode === 'rename') {
     const section = data[sectionEditCtx.tab].sections.find(s => s.id === sectionEditCtx.sectionId);
     section.name = name;
@@ -3014,6 +3773,7 @@ function executeDeleteSection() {
     folder.sections = folder.sections.filter(s => s.id !== sectionId);
   } else {
     data[tab].sections = data[tab].sections.filter(s => s.id !== sectionId);
+    lvAfterDelete(tab, sectionId);
   }
   saveData(data);
   closeConfirmDelete();
@@ -3027,6 +3787,7 @@ function executeDeleteSection() {
    ───────────────────────────────────────────────────── */
 
 let dragState = null;
+let lvDragged = false;   // set when a long-press drag starts, so the swipe handler ignores that touch
 let dragGhostEl = null;
 let dragInsertLineEl = null;
 
@@ -3122,6 +3883,7 @@ function findTouch(list, id) {
 }
 
 function startDrag(itemEl, ctx, cx, cy) {
+  lvDragged = true;
   // Mark source as ghost placeholder
   itemEl.classList.add('drag-source');
   dragState = { ctx, sourceEl: itemEl, dropIndex: -1, insertBefore: null };
@@ -3130,6 +3892,10 @@ function startDrag(itemEl, ctx, cx, cy) {
   const rect = itemEl.getBoundingClientRect();
   const ghost = document.createElement('div');
   ghost.className = 'drag-ghost';
+  if (ctx.type === 'lv') {
+    ghost.className = 'drag-ghost ' + itemEl.className.replace('drag-source', '');
+    const st = itemEl.getAttribute('style'); if (st) ghost.style.cssText = st;
+  }
   ghost.style.width = rect.width + 'px';
   ghost.style.left = rect.left + 'px';
   ghost.style.top = rect.top + 'px';
@@ -3152,6 +3918,12 @@ function positionGhost(cx, cy, refRect) {
   const rect = refRect || dragGhostEl.getBoundingClientRect();
   const offsetY = cy - rect.height / 2;
   const padding = 18;
+  if (dragState && dragState.ctx && dragState.ctx.grid) {
+    dragGhostEl.style.width = rect.width + 'px';
+    dragGhostEl.style.left = (cx - rect.width / 2) + 'px';
+    dragGhostEl.style.top = offsetY + 'px';
+    return;
+  }
   dragGhostEl.style.left = padding + 'px';
   dragGhostEl.style.width = `calc(100% - ${padding*2}px)`;
   dragGhostEl.style.top = offsetY + 'px';
@@ -3160,6 +3932,7 @@ function positionGhost(cx, cy, refRect) {
 function moveDrag(cx, cy, ctx) {
   if (!dragGhostEl || !dragState) return;
   positionGhost(cx, cy, null);
+  if (ctx.type === 'lv') { lvMoveDrag(cx, cy, ctx); return; }
 
   // Find siblings depending on type
   let siblings;
@@ -3244,6 +4017,7 @@ function finishDrag(ctx) {
 
 function cancelDrag() {
   if (dragState) dragState.sourceEl.classList.remove('drag-source');
+  document.querySelectorAll('.lv-drop-target').forEach(el => el.classList.remove('lv-drop-target'));
   document.querySelectorAll('.drag-shift-up,.drag-shift-down').forEach(el => el.classList.remove('drag-shift-up','drag-shift-down'));
   if (dragGhostEl) { dragGhostEl.remove(); dragGhostEl = null; }
   if (dragInsertLineEl) { dragInsertLineEl.remove(); dragInsertLineEl = null; }
@@ -3251,6 +4025,7 @@ function cancelDrag() {
 }
 
 function applyReorder(ctx, insertBefore) {
+  if (ctx.type === 'lv') { lvApplyReorder(ctx, insertBefore); return; }
   const { target, pos } = insertBefore;
 
   if (ctx.type === 'item') {
@@ -3310,6 +4085,7 @@ function applyReorder(ctx, insertBefore) {
    ───────────────────────────────────────────────────── */
 
 const FOLDER_SVGS = [
+  { id:'list',      svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>' },
   { id:'folder',    svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' },
   { id:'star',      svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' },
   { id:'target',    svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>' },
@@ -3461,6 +4237,8 @@ function openFolderEdit() {
     const typeHintEl = document.getElementById('sectionTypeHint');
     if (typeHintEl) typeHintEl.style.display = 'none';
     const extras = document.getElementById('folderPickerExtras');
+    const iconBlock = document.getElementById('feIconBlock');
+    if (iconBlock) iconBlock.style.display = '';
     if (extras) { extras.style.display = 'block'; feRenderFolderPickers(); }
     lockScroll(); document.getElementById('sectionEditModal').classList.add('open');
     setTimeout(() => { const inp = document.getElementById('sectionEditInput'); inp.focus(); inp.select(); }, 320);
@@ -5281,7 +6059,9 @@ let fabCollapseTimer = null;
 function handleFabClick() {
   const btn = document.getElementById('focusBtn');
   if (!fabExpanded) {
-    // First tap: expand
+    // First tap: expand. Off the Goals tab it also takes you there, so
+    // ending Focus mode always means looking at your goals first.
+    if (currentTab !== 'goals') switchTab('goals');
     fabExpanded = true;
     btn.classList.add('expanded');
     // Auto-collapse after 3 seconds if not tapped again
@@ -5400,6 +6180,7 @@ document.getElementById('importInput').addEventListener('change', function(e) {
         migrateSections(restored.goals);
         migrateSections(restored.checklist);
         migrateSections(restored.bucket);
+        lvMigrate(restored);
         // Ensure habits is an array
         if (!restored.streaks.habits || !Array.isArray(restored.streaks.habits)) {
           restored.streaks.habits = [];
@@ -6085,16 +6866,22 @@ function streakyContextLines() {
 
 /* ─────────────────────────────────────────────────────
    STREAKY — checklist surfacing
-   Only top-level (non-folder) sections. Folders are for
-   tracking lists like groceries and stay out of it.
+   Only top-level one-section lists, plus the pinned list even if
+   it has several sections. Other multi-section lists are for
+   tracking things like groceries and stay out of it.
    ───────────────────────────────────────────────────── */
 function streakyChecklistItems(limit) {
   const out = [];
   const sections = (data.checklist && data.checklist.sections) || [];
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
+  const pinnedId = data.checklist.pinned;
+  const flat = [];
   sections.forEach(section => {
-    if (section.type === 'folder') return;
+    if (section.type !== 'folder') flat.push(section);
+    else if (section.id === pinnedId) (section.sections || []).forEach(s => flat.push(s));
+  });
+  flat.forEach(section => {
     (section.items || []).forEach(item => {
       if (item.checked) return;
       let rank = 2, days = null;
@@ -6537,7 +7324,8 @@ function streakyAdvance() {
 }
 
 function streakyToggle(sectionId, itemId, el) {
-  const section = (data.checklist.sections || []).find(s => s.id === sectionId);
+  const found = lvFind('checklist', sectionId);
+  const section = found && found.sec;
   if (!section) return;
   const item = (section.items || []).find(i => i.id === itemId);
   if (!item) return;
