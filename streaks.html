@@ -1362,7 +1362,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 3px;
-    padding: 0 1px;
+    padding: 13px 1px 0;   /* top room for day markers, which float above the pill */
   }
   .compact-dot {
     height: 5px;
@@ -1371,6 +1371,58 @@
   }
   .compact-dot.future { background: rgba(255,255,255,0.04); }
   .compact-dot.today-ring { box-shadow: 0 0 0 1.5px rgba(255,255,255,0.30); }
+
+  /* ── Day markers (habit.marks) ──
+     A marked dot is wrapped in .mk-cell so the icon is a sibling of the dot,
+     not a child — dots carry opacity (gradient levels, future, weekly outline)
+     and the icon must not inherit it. */
+  .mk-cell { position: relative; min-width: 0; }
+  .mk-cell > .s-dot { width: 100%; height: 100%; }
+  .mk-cell.mk-h { height: 11px; flex-shrink: 0; }
+  .mk-cell.mk-h > .h-dot { height: 100%; }
+  .mk-icon {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1; pointer-events: none;
+  }
+  .mk-icon svg { display: block; filter: drop-shadow(0 0 1.2px rgba(0,0,0,0.9)); }
+  .mk-emoji { filter: drop-shadow(0 0 1px rgba(0,0,0,0.6)); }
+  .mk-s .mk-icon svg { width: 13px; height: 13px; }
+  .mk-s .mk-emoji { font-size: 11px; }
+  .mk-h .mk-icon svg { width: 10px; height: 10px; }
+  .mk-h .mk-emoji { font-size: 8.5px; }
+  /* Compact view: the icon floats just above its pill, like a flag. */
+  .mk-c .mk-icon { top: auto; bottom: calc(100% + 1px); transform: translateX(-50%); }
+  .mk-c .mk-icon svg { width: 12px; height: 12px; filter: none; }
+  .mk-c .mk-emoji { font-size: 10.5px; filter: none; }
+
+  /* Edit history: Log / Mark toggle */
+  .he-mode {
+    display: flex; gap: 4px; padding: 3px; margin: 2px 0 10px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 11px;
+  }
+  .he-mode-btn {
+    flex: 1; padding: 8px 0; border: none; border-radius: 8px; background: none;
+    color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .he-mode-btn.active { background: var(--surface3); color: var(--text); }
+
+  /* Marker picker sheet */
+  .mark-picker-overlay { z-index: 260; }
+  .mark-picker-sub { font-size: 12px; color: var(--text-muted); margin: -4px 0 14px; }
+  .mark-arrows { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .mark-emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .mark-opt {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    height: 48px; border-radius: 12px; cursor: pointer;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  }
+  .mark-opt svg { width: 22px; height: 22px; }
+  .mark-emoji-grid .mark-opt { height: 46px; font-size: 22px; padding: 0; }
+  .mark-opt.selected { border-color: var(--text); background: var(--surface3); box-shadow: 0 0 0 1px var(--text); }
+  .mark-remove { color: var(--danger) !important; }
   .compact-chip:active { transform: scale(0.96); }
   .compact-flame {
     width: 30px; height: 30px;
@@ -2207,12 +2259,21 @@
 <div class="modal-overlay" id="historyEditModal" onclick="if(event.target===this)closeHistoryEdit()">
   <div class="modal" style="max-height:90dvh;overflow-y:auto;border-radius:22px 22px 0 0">
     <div class="modal-title" id="historyEditTitle">Edit history</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.4">Tap any square to toggle that day on or off.</div>
+    <div class="he-mode" id="historyEditMode">
+      <button class="he-mode-btn" data-mode="log" onclick="setHistoryEditMode('log')">Log days</button>
+      <button class="he-mode-btn" data-mode="mark" onclick="setHistoryEditMode('mark')">Mark days</button>
+    </div>
+    <div id="historyEditHint" style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.4">Tap any square to toggle that day on or off.</div>
     <div id="historyEditHeatmap"></div>
     <div class="modal-actions" style="margin-top:16px">
       <button class="btn-cancel" onclick="closeHistoryEdit()">Done</button>
     </div>
   </div>
+</div>
+
+<!-- DAY MARKER PICKER (opened from Mark mode in Edit history) -->
+<div class="modal-overlay mark-picker-overlay" id="markPicker" onclick="if(event.target===this)closeMarkPicker()">
+  <div class="modal mark-picker" id="markPickerBody"></div>
 </div>
 
 <!-- SETTINGS MODAL -->
@@ -4966,7 +5027,7 @@ function buildCompactWeek(habit, col) {
     } else if (!isFuture && isRequired && freq === 'weekly') {
       style = `box-shadow:inset 0 0 0 1.5px ${col};opacity:0.55`;
     }
-    html += `<div class="${cls}" style="${style}"></div>`;
+    html += markWrap(`<div class="${cls}" style="${style}"></div>`, habit, ds, 'c');
   }
   return html;
 }
@@ -4992,7 +5053,7 @@ function renderStreakCard(habit) {
       const isFuture = d > today;
       const isToday = ds === todayStr();
       const level = isFuture ? 0 : habitLevel(habit, ds);
-      dots.push({ level, isFuture, isToday });
+      dots.push({ level, isFuture, isToday, ds });
     }
   }
 
@@ -5018,7 +5079,7 @@ function renderStreakCard(habit) {
       // Required but not yet completed — show outline dot in habit color
       style = `border:1.5px solid ${col};opacity:0.6`;
     }
-    return `<div class="${cls}" style="${style}"></div>`;
+    return markWrap(`<div class="${cls}" style="${style}"></div>`, habit, dot.ds, 's');
   }).join('');
 
   const ringBtn = buildRingBtn(habit, col, todayLevel);
@@ -5283,7 +5344,7 @@ function renderStreakAnalytics(habit) {
       } else if (!isFuture && hIsRequired) {
         style = `border:1.5px solid ${col};opacity:0.6`;
       }
-      dotsHtml += `<div class="${cls}" style="${style}"></div>`;
+      dotsHtml += markWrap(`<div class="${cls}" style="${style}"></div>`, habit, ds, 'h');
     }
     weekCols.push(dotsHtml);
   }
@@ -6016,14 +6077,16 @@ let historyEditCtx = null; // { habitId, windowOffset }
 
 function openHistoryEdit(habitId) {
   const habit = data.streaks.habits.find(h => h.id === habitId);
-  historyEditCtx = { habitId, windowOffset: 0 };
+  historyEditCtx = { habitId, windowOffset: 0, mode: 'log' };
   document.getElementById('historyEditTitle').textContent = habit.name;
+  syncHistoryEditMode();
   renderHistoryEditHeatmap();
   document.getElementById('historyEditModal').classList.add('open');
 }
 
 function closeHistoryEdit() {
   document.getElementById('historyEditModal').classList.remove('open');
+  closeMarkPicker();
   historyEditCtx = null;
   renderStreaks();
 }
@@ -6124,9 +6187,10 @@ function renderHistoryEditHeatmap() {
         const bgStyle = habit.type === 'binary'
           ? `background:${col};box-shadow:0 0 4px ${col}88`
           : `background:${col};opacity:${(0.25 + (level / 4) * 0.75).toFixed(2)}`;
-        dotsHtml += `<div class="${cls}" style="${bgStyle};cursor:pointer" onclick="toggleHistoryDot('${ds}')"></div>`;
+        dotsHtml += markWrap(`<div class="${cls}" style="${bgStyle};cursor:pointer" onclick="historyDotTap('${ds}')"></div>`, habit, ds, 'h');
       } else {
-        dotsHtml += `<div class="${cls}" style="cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:700;color:rgba(255,255,255,0.35);line-height:1;font-family:Inter,sans-serif" onclick="toggleHistoryDot('${ds}')">${dayNum}</div>`;
+        const numTxt = habitMark(habit, ds) ? '' : dayNum;
+        dotsHtml += markWrap(`<div class="${cls}" style="cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:700;color:rgba(255,255,255,0.35);line-height:1;font-family:Inter,sans-serif" onclick="historyDotTap('${ds}')">${numTxt}</div>`, habit, ds, 'h');
       }
     }
     weekCols.push(dotsHtml);
@@ -6152,6 +6216,116 @@ function renderHistoryEditHeatmap() {
       <div class="gh-heatmap-grid">${weekColsHtml}</div>
     </div>
   `;
+}
+
+/* ─────────────────────────────────────────────────────
+   DAY MARKERS
+   A habit can carry one marker per day in habit.marks = { 'YYYY-MM-DD': value }.
+   value is 'up' (green arrow), 'down' (red arrow) or an emoji string.
+   Kept separate from history on purpose: logging or unlogging a day never
+   touches its marker, and marks work on days you missed too. Placed from
+   the Mark mode in Edit history. Rides along in export/import because the
+   import deep-copies habits wholesale.
+   ───────────────────────────────────────────────────── */
+// Quick-pick emoji for the marker picker. Edit freely: one emoji per string.
+// 12 fills two rows of six.
+const MARK_EMOJI = ['⭐', '🔥', '💪', '🎉', '🏆', '💯', '🤒', '😴', '✈️', '🍕', '⚠️', '🌧️'];
+
+const MARK_UP_SVG = '<svg viewBox="0 0 12 12" aria-label="Good day"><path d="M6 1 L11 6.6 H7.7 V11 H4.3 V6.6 H1 Z" fill="#34d399"/></svg>';
+const MARK_DOWN_SVG = '<svg viewBox="0 0 12 12" aria-label="Rough day"><path d="M6 11 L11 5.4 H7.7 V1 H4.3 V5.4 H1 Z" fill="#f87171"/></svg>';
+
+function habitMark(habit, ds) {
+  return (habit && habit.marks && habit.marks[ds]) || null;
+}
+
+function markIconHtml(m) {
+  if (m === 'up') return MARK_UP_SVG;
+  if (m === 'down') return MARK_DOWN_SVG;
+  return `<span class="mk-emoji">${escHtml(m)}</span>`;
+}
+
+// Wrap a dot's HTML with its marker, if it has one. where: 's' card grid,
+// 'h' heatmap, 'c' compact week strip.
+function markWrap(dotHtml, habit, ds, where) {
+  const m = habitMark(habit, ds);
+  if (!m) return dotHtml;
+  return `<div class="mk-cell mk-${where}">${dotHtml}<span class="mk-icon">${markIconHtml(m)}</span></div>`;
+}
+
+function setHistoryEditMode(mode) {
+  if (!historyEditCtx) return;
+  historyEditCtx.mode = mode;
+  syncHistoryEditMode();
+}
+
+function syncHistoryEditMode() {
+  const mode = (historyEditCtx && historyEditCtx.mode) || 'log';
+  document.querySelectorAll('#historyEditMode .he-mode-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.mode === mode));
+  document.getElementById('historyEditHint').textContent = mode === 'mark'
+    ? 'Tap any day to add or change its marker. Done or not, any day can be marked.'
+    : 'Tap any square to toggle that day on or off.';
+}
+
+function historyDotTap(ds) {
+  if (!historyEditCtx) return;
+  if (historyEditCtx.mode === 'mark') openMarkPicker(ds);
+  else toggleHistoryDot(ds);
+}
+
+let markPickerDate = null;
+
+function openMarkPicker(ds) {
+  if (!historyEditCtx) return;
+  markPickerDate = ds;
+  renderMarkPicker();
+  document.getElementById('markPicker').classList.add('open');
+}
+
+function closeMarkPicker() {
+  markPickerDate = null;
+  const el = document.getElementById('markPicker');
+  if (el) el.classList.remove('open');
+}
+
+function renderMarkPicker() {
+  const habit = historyEditCtx && data.streaks.habits.find(h => h.id === historyEditCtx.habitId);
+  if (!habit || !markPickerDate) return;
+  const cur = habitMark(habit, markPickerDate);
+  const d = new Date(markPickerDate + 'T00:00:00');
+  const title = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric',
+    year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
+  const done = habitLevel(habit, markPickerDate) > 0;
+  const opt = (val, inner, label) =>
+    `<button class="mark-opt${cur === val ? ' selected' : ''}" onclick="setDayMark(${escHtml(JSON.stringify(val))})"${label ? ` aria-label="${label}"` : ''}>${inner}</button>`;
+  document.getElementById('markPickerBody').innerHTML = `
+    <div class="modal-title">${title}</div>
+    <div class="mark-picker-sub">${escHtml(habit.name)} · ${done ? 'done' : 'not done'}</div>
+    <div class="mark-arrows">
+      ${opt('up', MARK_UP_SVG + 'Good day')}
+      ${opt('down', MARK_DOWN_SVG + 'Rough day')}
+    </div>
+    <div class="mark-emoji-grid">${MARK_EMOJI.map(e => opt(e, escHtml(e), e)).join('')}</div>
+    <div class="modal-actions" style="margin-top:16px">
+      ${cur ? '<button class="btn-cancel mark-remove" onclick="setDayMark(null)">Remove marker</button>' : ''}
+      <button class="btn-cancel" onclick="closeMarkPicker()">Cancel</button>
+    </div>
+  `;
+}
+
+function setDayMark(val) {
+  const habit = historyEditCtx && data.streaks.habits.find(h => h.id === historyEditCtx.habitId);
+  if (!habit || !markPickerDate) return;
+  if (val) {
+    if (!habit.marks) habit.marks = {};
+    habit.marks[markPickerDate] = val;
+  } else if (habit.marks) {
+    delete habit.marks[markPickerDate];
+    if (!Object.keys(habit.marks).length) delete habit.marks;
+  }
+  saveData(data);
+  closeMarkPicker();
+  renderHistoryEditHeatmap();
 }
 
 /* ─────────────────────────────────────────────────────
