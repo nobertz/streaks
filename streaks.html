@@ -1952,18 +1952,23 @@
   /* bucket shelf */
   .lv-shelf { display:flex; gap:7px; overflow-x:auto; margin:0 -18px; padding:1px 18px 3px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
   .lv-shelf::-webkit-scrollbar { display:none; }
-  .lv-trophy { flex:0 0 auto; max-width:200px; display:flex; align-items:center; gap:8px; background:color-mix(in srgb,var(--c) 9%,var(--surface)); border:1px solid color-mix(in srgb,var(--c) 24%,var(--border-soft)); border-radius:12px; padding:7px 11px 7px 9px; cursor:pointer; }
+  .lv-trophy { flex:0 0 auto; max-width:200px; display:flex; align-items:center; gap:8px; background:color-mix(in srgb,var(--c) 9%,var(--surface)); border:1px solid color-mix(in srgb,var(--c) 24%,var(--border-soft)); border-radius:11px; padding:5px 10px 5px 8px; cursor:pointer; }
   .lv-trophy:active { transform:scale(.97); }
   .lv-trophy svg { width:14px; height:14px; color:var(--c); fill:var(--c); flex-shrink:0; }
   .lv-tr-txt { font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .lv-tr-when { font-size:10.5px; color:var(--text-muted); margin-top:1px; }
-  .lv-shelf-empty { color:var(--text-muted); font-size:12.5px; padding:2px 2px 4px; }
+  .lv-shelf-empty { color:var(--text-muted); font-size:12.5px; padding:0 2px; }
+  .lv-block.lv-shelf-block { margin-bottom:18px; }
+  .lv-shelf-block .lv-eyebrow { margin:0 2px 7px; }
 
   /* goals */
-  .lv-edit-bar { display:flex; justify-content:flex-end; margin:-12px -6px -6px; }
+  .lv-goals { position:relative; }
+  .lv-edit-bar { position:absolute; top:-3px; right:-8px; z-index:2; }
   .lv-edit-btn { background:none; border:none; color:var(--text-dim); font:600 12.5px 'Inter',sans-serif; padding:6px 8px; cursor:pointer; }
   .lv-goals.editing .lv-edit-btn { color:#fb923c; }
   .lv-gsec { margin-top:14px; }
+  .lv-edit-bar + .lv-gsec { margin-top:0; }
+  .lv-edit-bar + .lv-gsec .lv-stem { padding-right:50px; }
   .lv-stem { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; font-weight:700; color:var(--c); margin:0 0 3px; min-height:24px; }
   .lv-gline { display:flex; align-items:center; gap:12px; padding:7px 0; background:var(--bg); }
   .lv-gline::before { content:''; width:3px; align-self:stretch; min-height:20px; border-radius:2px; background:linear-gradient(180deg,var(--c),var(--cd)); flex-shrink:0; }
@@ -1982,6 +1987,26 @@
   .lv-toast button { background:none; border:none; color:#60a5fa; font:700 13px 'Inter',sans-serif; cursor:pointer; padding:2px 4px; }
   .lv-sheet-sub { font-size:12px; color:var(--text-muted); margin:-10px 0 14px; }
   #page-goals, #page-checklist, #page-bucket { padding-bottom:84px; }
+  /* ── Streaks tab: same look as the other tabs (Sep 2026) ── */
+  #page-streaks .section-header-row { margin:-6px 0 8px; }
+  #page-streaks .section-label { background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important; color:var(--text-muted); font-size:10.5px; font-weight:700; }
+  #page-streaks .view-toggle-btn { background:none; border:none; color:var(--text-dim); font-size:12.5px; font-weight:600; letter-spacing:0; text-transform:none; padding:6px 4px; }
+  #page-streaks .streak-card { background:linear-gradient(160deg, color-mix(in srgb, var(--c) 7%, var(--surface)), var(--surface) 65%); border:1px solid color-mix(in srgb, var(--c) 16%, var(--border-soft)); border-radius:16px; margin-bottom:10px; }
+  #page-streaks .streak-card.logged { background:linear-gradient(160deg, color-mix(in srgb, var(--c) 15%, var(--surface)), var(--surface) 72%); border-color:color-mix(in srgb, var(--c) 34%, var(--border-soft)); }
+  #page-streaks .streak-name, #page-streaks .compact-name { font-weight:700; }
+  #page-streaks .compact-grid { gap:9px; }
+  #page-streaks .compact-chip { background:linear-gradient(160deg, color-mix(in srgb, var(--c) 7%, var(--surface)), var(--surface) 70%); border:1px solid color-mix(in srgb, var(--c) 16%, var(--border-soft)); border-radius:14px; }
+  #page-streaks .compact-chip.logged { background:linear-gradient(160deg, color-mix(in srgb, var(--c) 16%, var(--surface)), var(--surface) 75%); border-color:color-mix(in srgb, var(--c) 36%, var(--border-soft)); }
+  #page-streaks .streak-card.drag-source { background:transparent; border:1.5px dashed var(--border); }
+  #page-streaks .add-btn { padding:12px; border:1.5px dashed var(--border); border-radius:12px; font-size:13px; font-weight:500; color:var(--text-dim); margin-top:16px; }
+
+  .drag-ghost.lv-row, .drag-ghost.lv-gline, .drag-ghost.lv-sec, .drag-ghost.lv-gsec, .drag-ghost.lv-tile { position:fixed; margin:0; animation:none; }
+  .drag-ghost.lv-gline { padding:7px 12px 7px 10px; background:var(--surface2); }
+  .drag-ghost.lv-sec, .drag-ghost.lv-gsec { padding:0 10px 10px; background:var(--surface2); }
+  .drag-ghost.lv-tile { transform:scale(1.05) rotate(1.2deg); border-color:var(--c); box-shadow:0 16px 40px rgba(0,0,0,.6), 0 0 0 1.5px var(--c); transition:none; }
+  .lv-tile.drag-source { opacity:1; background:transparent; border:1.5px dashed color-mix(in srgb,var(--c) 55%,var(--border)); }
+  .lv-tile.drag-source > * { visibility:hidden; }
+  .lv-tiles.lv-dragging .lv-tile { transition:none; }
 
 </style>
 </head>
@@ -2607,7 +2632,7 @@ function lvSectionHtml(tab, e, sec, showHead) {
       <button class="lv-dots lv-sec-dots" onclick="lvSectionMenu('${tab}','${e.id}','${sec.id}')" aria-label="Section options">⋮</button></div>`;
   }
   h += `<div class="lv-group" data-sec="${sec.id}">` + items.map(it => lvRowHtml(tab, e, sec, it)).join('') + lvAddRowHtml(tab, e, sec);
-  if (marked) h += `<div class="lv-clear-row"><span>${marked} ${bucket ? 'starred' : 'done'}</span><button class="lv-clear-btn" onclick="lvClear('${tab}','${sec.id}')">Clear</button></div>`;
+  if (marked) h += `<div class="lv-clear-row"><span>${marked} ${bucket ? 'starred' : 'done'}</span><button class="lv-clear-btn" onclick="lvClear('${tab}','${sec.id}')">${bucket ? 'Finished' : 'Clear'}</button></div>`;
   return h + `</div></div>`;
 }
 
@@ -2632,13 +2657,13 @@ function lvHomeHtml(tab) {
     const shelf = [];
     data.bucket.sections.forEach(e => lvSecs(e).forEach(s => (s.items || []).forEach(it => { if (it.shelved) shelf.push({ e, it }); })));
     shelf.sort((a, b) => (b.it.doneOn || '').localeCompare(a.it.doneOn || ''));
-    h += `<div class="lv-block"><div class="lv-eyebrow">Done so far<em>${shelf.length ? `${shelf.length} and counting` : ''}</em></div>`;
+    h += `<div class="lv-block lv-shelf-block"><div class="lv-eyebrow">Done so far<em>${shelf.length ? `${shelf.length} and counting` : ''}</em></div>`;
     h += shelf.length
       ? `<div class="lv-shelf">${shelf.map(({ e, it }) => {
           const when = it.doneOn ? `${LV_MON[lvParse(it.doneOn).getMonth()]} ${lvParse(it.doneOn).getFullYear()}` : '';
           return `<div class="lv-trophy" style="${lvVars(e)}" onclick="lvShelfMenu('${it.id}')">${LV_STAR}<div style="min-width:0"><div class="lv-tr-txt">${escHtml(it.text)}</div>${when ? `<div class="lv-tr-when">${when}</div>` : ''}</div></div>`;
         }).join('')}</div>`
-      : `<div class="lv-shelf-empty">Star something and press Clear to start your shelf.</div>`;
+      : `<div class="lv-shelf-empty">Star something and press Finished to start your shelf.</div>`;
     h += `</div>`;
   }
   if (pinned) {
@@ -2712,6 +2737,19 @@ function lvMoveDrag(cx, cy, ctx) {
   sibs.forEach(s => s.classList.remove('drag-shift-up', 'drag-shift-down', 'lv-drop-target'));
   dragInsertLineEl.style.display = 'none';
   dragState.insertBefore = null;
+  if (ctx.grid) {
+    // Live reorder: the placeholder moves through the grid under your finger,
+    // so the layout itself shows where the list will land.
+    parent.classList.add('lv-dragging');
+    const hit = sibs.find(s => { const r = s.getBoundingClientRect(); return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom; });
+    if (hit) {
+      const r = hit.getBoundingClientRect();
+      const ref = cx > r.left + r.width / 2 ? hit.nextSibling : hit;
+      if (ref !== src) parent.insertBefore(src, ref);
+    }
+    dragState.insertBefore = { target: src, pos: 'dom' };
+    return;
+  }
   let target = null, pos = 'before';
   for (const s of sibs) {
     const r = s.getBoundingClientRect();
@@ -2735,8 +2773,25 @@ function lvMoveDrag(cx, cy, ctx) {
 /* Called from applyReorder for ctx.type === 'lv' */
 function lvApplyReorder(ctx, insertBefore) {
   const arr = ctx.arr();
+  if (ctx.grid) {
+    const parent = dragState.sourceEl.parentElement;
+    parent.classList.remove('lv-dragging');
+    const order = Array.from(parent.querySelectorAll(':scope > [data-lvid]')).map(el => el.dataset.lvid);
+    dragState = null;
+    if (arr) {
+      // Tiles don't include the pinned list: rebuild the order and put it back where it was.
+      const pinned = arr.find(x => !order.includes(x.id));
+      const pinIdx = pinned ? arr.indexOf(pinned) : -1;
+      const next = order.map(id => arr.find(x => x.id === id)).filter(Boolean);
+      if (pinned) next.splice(Math.min(pinIdx, next.length), 0, pinned);
+      if (next.length === arr.length) { arr.splice(0, arr.length, ...next); saveData(data); }
+    }
+    render();
+    return;
+  }
   const fromId = dragState.sourceEl.dataset.lvid, toId = insertBefore.target.dataset.lvid;
   document.querySelectorAll('.lv-drop-target').forEach(el => el.classList.remove('lv-drop-target'));
+  document.querySelectorAll('.lv-dragging').forEach(el => el.classList.remove('lv-dragging'));
   dragState = null;
   if (!arr) { render(); return; }
   const from = arr.findIndex(x => x.id === fromId);
@@ -3902,6 +3957,7 @@ function startDrag(itemEl, ctx, cx, cy) {
   ghost.innerHTML = itemEl.innerHTML;
   document.body.appendChild(ghost);
   dragGhostEl = ghost;
+  dragState.ghostW = rect.width; dragState.ghostH = rect.height;
 
   // Insert line element
   const line = document.createElement('div');
@@ -3919,9 +3975,11 @@ function positionGhost(cx, cy, refRect) {
   const offsetY = cy - rect.height / 2;
   const padding = 18;
   if (dragState && dragState.ctx && dragState.ctx.grid) {
-    dragGhostEl.style.width = rect.width + 'px';
-    dragGhostEl.style.left = (cx - rect.width / 2) + 'px';
-    dragGhostEl.style.top = offsetY + 'px';
+    const w = dragState.ghostW, h = dragState.ghostH;
+    dragGhostEl.style.width = w + 'px';
+    dragGhostEl.style.height = h + 'px';
+    dragGhostEl.style.left = (cx - w / 2) + 'px';
+    dragGhostEl.style.top = (cy - h / 2) + 'px';
     return;
   }
   dragGhostEl.style.left = padding + 'px';
@@ -4018,6 +4076,7 @@ function finishDrag(ctx) {
 function cancelDrag() {
   if (dragState) dragState.sourceEl.classList.remove('drag-source');
   document.querySelectorAll('.lv-drop-target').forEach(el => el.classList.remove('lv-drop-target'));
+  document.querySelectorAll('.lv-dragging').forEach(el => el.classList.remove('lv-dragging'));
   document.querySelectorAll('.drag-shift-up,.drag-shift-down').forEach(el => el.classList.remove('drag-shift-up','drag-shift-down'));
   if (dragGhostEl) { dragGhostEl.remove(); dragGhostEl = null; }
   if (dragInsertLineEl) { dragInsertLineEl.remove(); dragInsertLineEl = null; }
@@ -4771,7 +4830,7 @@ function renderStreaks(opts) {
           </div>` : ''}
         </div>
         ${body}
-        <button class="add-btn" onclick="openAddHabit()">＋ Add daily habit</button>
+        <button class="add-btn" onclick="openAddHabit()">＋ New habit</button>
       </div>
     `;
 
@@ -4788,18 +4847,24 @@ function renderStreaks(opts) {
   else withScrollPreserved(draw);
 }
 
+/* Compact chip's button: a smaller copy of the card's ring button.
+   Plus when not logged, check once logged; gradient habits fill the arc by level. */
 function buildMiniRing(habit, col) {
   const level = habitLevel(habit, todayStr());
   const max = habit.type === 'binary' ? 1 : 4;
-  const frac = Math.min(1, level / max);
-  const r = 7.5, c = 2 * Math.PI * r;
-  const showNum = habit.type === 'gradient' && level > 0;
-  return `<svg viewBox="0 0 20 20" width="20" height="20" style="flex-shrink:0;overflow:visible" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="10" cy="10" r="${r}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2.5"/>
-      ${frac > 0 ? `<circle cx="10" cy="10" r="${r}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round"
-        stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${(c * (1 - frac)).toFixed(2)}"
-        transform="rotate(-90 10 10)" style="transition:stroke-dashoffset 0.25s ease"/>` : ''}
-      ${showNum ? `<text x="10" y="12.8" text-anchor="middle" font-size="8" font-weight="800" fill="${col}" font-family="Inter,sans-serif">${level}</text>` : ''}
+  const done = level > 0;
+  const r = 17, cx = 22, c = 2 * Math.PI * r;
+  const off = c * (1 - (done ? Math.min(1, level / max) : 0));
+  const ic = done ? col : 'rgba(255,255,255,0.3)';
+  return `<svg class="compact-ring" viewBox="0 0 44 44" width="26" height="26" fill="none" style="flex-shrink:0" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${cx}" cy="${cx}" r="${r}" stroke="rgba(255,255,255,0.1)" stroke-width="4"/>
+      <circle cx="${cx}" cy="${cx}" r="${r}" stroke="${col}" stroke-width="4" stroke-linecap="round"
+        stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"
+        transform="rotate(-90 ${cx} ${cx})" style="transition:stroke-dashoffset 0.25s ease"/>
+      ${done
+        ? `<polyline points="14,22.5 20,28.5 30,16" stroke="${ic}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`
+        : `<line x1="22" y1="14" x2="22" y2="30" stroke="${ic}" stroke-width="4" stroke-linecap="round"/>
+           <line x1="14" y1="22" x2="30" y2="22" stroke="${ic}" stroke-width="4" stroke-linecap="round"/>`}
     </svg>`;
 }
 
@@ -4821,7 +4886,7 @@ function renderCompactChip(habit) {
   }
 
   return `
-    <div class="compact-chip" onclick="${logFn}" style="${state !== 'off' ? `border-color:${col}40` : ''}">
+    <div class="compact-chip${habitLevel(habit, todayStr()) > 0 ? ' logged' : ''}" onclick="${logFn}" style="--c:${col}">
       <div class="compact-chip-top">
         <div class="compact-flame" style="${flameBoxStyle(state, col)}">${flameSvg(flameFill(state, col), 16)}</div>
         <div class="compact-text">
@@ -4929,7 +4994,7 @@ function renderStreakCard(habit) {
   }).join('');
 
   return `
-    <div class="streak-card" data-habit-id="${habit.id}">
+    <div class="streak-card${todayLevel > 0 ? ' logged' : ''}" data-habit-id="${habit.id}" style="--c:${col}">
       <div class="streak-card-main" onclick="toggleHabitExpand('${habit.id}')">
         <div class="streak-card-body">
           <div class="streak-left-col">
