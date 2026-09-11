@@ -1986,7 +1986,7 @@
   .lv-toast.show { opacity:1; transform:none; pointer-events:auto; }
   .lv-toast button { background:none; border:none; color:#60a5fa; font:700 13px 'Inter',sans-serif; cursor:pointer; padding:2px 4px; }
   .lv-sheet-sub { font-size:12px; color:var(--text-muted); margin:-10px 0 14px; }
-  #page-goals, #page-checklist, #page-bucket { padding-bottom:84px; }
+  #page-goals, #page-checklist, #page-bucket, #page-streaks { padding-bottom:84px; }
   /* ── Streaks tab: same look as the other tabs (Sep 2026) ── */
   #page-streaks .section-header-row { margin:-6px 0 8px; }
   #page-streaks .section-label { background:none !important; -webkit-background-clip:border-box !important; background-clip:border-box !important; color:var(--text-muted); font-size:10.5px; font-weight:700; }
@@ -1998,6 +1998,10 @@
   #page-streaks .compact-chip { background:linear-gradient(160deg, color-mix(in srgb, var(--c) 7%, var(--surface)), var(--surface) 70%); border:1px solid color-mix(in srgb, var(--c) 16%, var(--border-soft)); border-radius:14px; }
   #page-streaks .compact-chip.logged { background:linear-gradient(160deg, color-mix(in srgb, var(--c) 16%, var(--surface)), var(--surface) 75%); border-color:color-mix(in srgb, var(--c) 36%, var(--border-soft)); }
   #page-streaks .streak-card.drag-source { background:transparent; border:1.5px dashed var(--border); }
+  #page-streaks .compact-ring-btn { background:none; border:none; padding:9px; margin:-9px -7px -9px -5px; display:flex; border-radius:50%; cursor:pointer; flex-shrink:0; }
+  #page-streaks .compact-ring-btn:active { transform:scale(.88); }
+  #page-streaks .compact-chip:has(.compact-ring-btn:active) { transform:none; }
+  #page-streaks .habit-page-card .streak-card-main { cursor:default; }
   #page-streaks .add-btn { padding:12px; border:1.5px dashed var(--border); border-radius:12px; font-size:13px; font-weight:500; color:var(--text-dim); margin-top:16px; }
 
   .drag-ghost.lv-row, .drag-ghost.lv-gline, .drag-ghost.lv-sec, .drag-ghost.lv-gsec, .drag-ghost.lv-tile { position:fixed; margin:0; animation:none; }
@@ -2392,9 +2396,10 @@ function updateDate() {
 const tabOrder = ['streaks', 'goals', 'checklist', 'bucket'];
 
 function switchTab(tab, fromSwipe = false) {
-  if (tab === currentTab) { if (lvOpen) lvBack(); return; }
+  if (tab === currentTab) { if (lvOpen) lvBack(); else if (habitPageId) closeHabitPage(); return; }
   openFolderIds.clear();
   lvOpen = null;
+  habitPageId = null;
   lvGoalsEditing = false;
   const fromIdx = tabOrder.indexOf(currentTab);
   const toIdx = tabOrder.indexOf(tab);
@@ -2450,7 +2455,7 @@ function switchTab(tab, fromSwipe = false) {
     const dy = t.clientY - startY;
     if (lvDragged) { tracking = false; return; }
     if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.8) {
-      if (lvOpen) { if (dx > 0) lvBack(); tracking = false; return; }
+      if (lvOpen || habitPageId) { if (dx > 0) { if (lvOpen) lvBack(); else closeHabitPage(); } tracking = false; return; }
       const idx = tabOrder.indexOf(currentTab);
       if (dx < 0 && idx < tabOrder.length - 1) switchTab(tabOrder[idx+1], true);
       else if (dx > 0 && idx > 0) switchTab(tabOrder[idx-1], true);
@@ -4812,6 +4817,13 @@ function renderStreaks(opts) {
   const draw = () => {
     const page = document.getElementById('page-streaks');
     const habits = data.streaks.habits;
+    page.classList.remove('lv-page-in', 'lv-page-back');
+    if (lvAnim) { void page.offsetWidth; page.classList.add(lvAnim === 'in' ? 'lv-page-in' : 'lv-page-back'); lvAnim = null; }
+    if (habitPageId) {
+      const h = habits.find(x => x.id === habitPageId);
+      if (h) { page.innerHTML = habitPageHtml(h); return; }
+      habitPageId = null;
+    }
 
     const body = habits.length === 0
       ? `<div class="empty">No habits yet.<br>Add one to start a streak.</div>`
@@ -4845,6 +4857,33 @@ function renderStreaks(opts) {
   };
   if (opts && opts.raw) draw();
   else withScrollPreserved(draw);
+}
+
+/* ── Habit page: tapping a compact chip opens the full card on its own page,
+   like opening a list on Checklist/Bucket. Only the ring on the chip logs. ── */
+let habitPageId = null, habitPageScroll = 0;
+function habitPageHtml(h) {
+  const card = renderStreakCard(h)
+    .replace('class="streak-card', 'class="streak-card expanded habit-page-card')
+    .replace(`onclick="toggleHabitExpand('${h.id}')"`, '');
+  return `<div class="lv-d-bar" style="--c:${habitColor(h)}"><button class="lv-back" onclick="closeHabitPage()">${LV_BACK}Streaks</button></div>${card}`;
+}
+function openHabitPage(id) {
+  if (dragState) return;
+  habitPageScroll = window.scrollY;
+  habitPageId = id;
+  lvAnim = 'in';
+  renderStreaks({ raw: true });
+  window.scrollTo(0, 0);
+}
+function closeHabitPage() {
+  if (!habitPageId) return;
+  habitPageId = null;
+  lvAnim = 'back';
+  renderStreaks({ raw: true });
+  const y = habitPageScroll;
+  window.scrollTo(0, y);
+  requestAnimationFrame(() => window.scrollTo(0, y));
 }
 
 /* Compact chip's button: a smaller copy of the card's ring button.
@@ -4886,14 +4925,14 @@ function renderCompactChip(habit) {
   }
 
   return `
-    <div class="compact-chip${habitLevel(habit, todayStr()) > 0 ? ' logged' : ''}" onclick="${logFn}" style="--c:${col}">
+    <div class="compact-chip${habitLevel(habit, todayStr()) > 0 ? ' logged' : ''}" onclick="openHabitPage('${habit.id}')" style="--c:${col}">
       <div class="compact-chip-top">
         <div class="compact-flame" style="${flameBoxStyle(state, col)}">${flameSvg(flameFill(state, col), 16)}</div>
         <div class="compact-text">
           <div class="compact-name">${escHtml(habit.name)}</div>
           <div class="compact-sub" style="color:${state === 'off' ? 'var(--text-dim)' : col}">${sub}</div>
         </div>
-        ${buildMiniRing(habit, col)}
+        <button class="compact-ring-btn" onclick="event.stopPropagation();${logFn}" aria-label="Log today">${buildMiniRing(habit, col)}</button>
       </div>
       <div class="compact-week">${buildCompactWeek(habit, col)}</div>
     </div>
