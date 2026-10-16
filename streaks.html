@@ -443,7 +443,6 @@
     transition: all 0.15s;
   }
   .streak-yday-btn:active { background: var(--surface3); }
-  .streak-yday-btn.done { opacity: 0.4; }
   .streak-yday-btn svg { width: 13px; height: 13px; }
 
   /* Expanded analytics */
@@ -1541,46 +1540,54 @@
   .lv-tiles.lv-dragging .lv-tile { transition:none; }
 
   /* ══════════════════════════════════════════════════════
-     STREAK FIRE (Oct 2026)
-     Bars are laid by fireDecorate() over cells marked data-fire.
-     fr-faint: cards, month calendar, 4-month grid, Edit history.
-     fr-full:  the compact week strip. fr-inplay: a weekly habit's
-     current week before its target is met.
+     STREAK FIRE (Oct 2026, v2.4)
+     fireDecorate() lays a fire outline around each run of streak days,
+     in every grid: card 3-week grid, compact week strip, month calendar,
+     4-month grid, Edit history. fr-blaze when today (weekly: the week's
+     target) is done, fr-smolder (dim, no flames) while it's still open.
+     fr-inplay: a weekly habit's current week before its target, drawn as
+     a thin unlit outline that catches fire when the target is met.
      ══════════════════════════════════════════════════════ */
   /* Cards only fade in when you arrive on the tab, not on every redraw. */
   #page-streaks.st-enter .streak-card { animation: fadeSlideIn .3s ease both; }
   #page-streaks.st-enter .compact-chip { animation: fadeSlideIn .25s ease both; }
 
   .streak-dot-grid, .compact-week, .gh-heatmap-grid, .mc-grid { position: relative; }
-  .streak-dot-grid > :not(.fire-run), .compact-week > :not(.fire-run):not(.fire-today), .gh-week-col > *, .mc-grid > :not(.fire-run) { position: relative; z-index: 1; }
+  .streak-dot-grid > :not(.fire-run), .compact-week > :not(.fire-run), .gh-week-col > *, .mc-grid > :not(.fire-run) { position: relative; z-index: 1; }
   .compact-week > .mk-cell { z-index: 3; }
   .fire-run { position: absolute; pointer-events: none; }
-  .fr-faint { z-index: 0; border-radius: 7px; background: color-mix(in srgb, var(--c) 26%, transparent);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--c) 38%, transparent); animation: frBreath 2.4s ease-in-out infinite; }
-  .fr-faint.fr-smolder { background: color-mix(in srgb, var(--c) 13%, transparent); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 18%, transparent); animation-duration: 3.6s; }
-  @keyframes frBreath { 50% { box-shadow: 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); } }
-  .fr-inplay { z-index: 0; border-radius: 7px; border: 1px dashed color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 7%, transparent); }
-  .gh-heatmap-grid .fr-faint, .gh-heatmap-grid .fr-inplay { border-radius: 4px; }
-  .mc-grid .fr-faint, .mc-grid .fr-inplay { border-radius: 12px; }
-  .compact-week .fr-inplay { border-radius: 5px; }
-  .fr-full { z-index: 2; border-radius: 3px; --th: 8px;
-    background: linear-gradient(90deg, var(--cd), var(--c) 25%, var(--cl) 50%, var(--c) 75%, var(--cd)) 0 0 / 56px 100% repeat-x;
-    box-shadow: 0 0 9px color-mix(in srgb, var(--c) 70%, transparent), inset 0 -2px 4px rgba(0,0,0,.22), inset 0 1px 2px rgba(255,255,255,.3);
-    animation: frFlow 1.1s linear infinite; }
-  .fr-full::after { content: ''; position: absolute; inset: 30% 3px; border-radius: 3px; mix-blend-mode: overlay; opacity: .4;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent) 0 0 / 38px 100% repeat-x; animation: frFlow .7s linear infinite reverse; }
-  .fr-full i { position: absolute; left: 1px; right: 1px; bottom: 72%; height: var(--th); pointer-events: none; transform-origin: 50% 100%; mix-blend-mode: screen; filter: blur(.9px);
+
+  /* Fire outline: a glowing line around the days, a light traveling along it, small flames on top. */
+  .fr-outline { z-index: 2; border-radius: 8px; --th: 7px; }
+  .fr-outline::before { content: ''; position: absolute; inset: 0; border-radius: inherit; border: 1.5px solid var(--c);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--c) 60%, transparent), inset 0 0 6px color-mix(in srgb, var(--c) 28%, transparent);
+    animation: frFlicker 1.6s ease-in-out infinite; }
+  .fr-outline .flow { position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+    background: linear-gradient(90deg, transparent 0 30%, var(--cl) 42%, #fff 50%, var(--cl) 58%, transparent 70% 100%) 0 0 / 200% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: frOlFlow 2.4s linear infinite; }
+  .fr-outline i { position: absolute; left: 1px; right: 1px; bottom: calc(100% - 3px); height: var(--th); pointer-events: none; transform-origin: 50% 100%; mix-blend-mode: screen; filter: blur(.9px); opacity: .75;
     background: radial-gradient(ellipse 42% 100% at 50% 100%, color-mix(in srgb, var(--cl) 80%, transparent) 0%, color-mix(in srgb, var(--c) 55%, transparent) 48%, transparent 72%) 0 100% / 11px var(--th) repeat-x;
     animation: frTongues .55s ease-in-out infinite alternate; }
-  .fr-full i + i { background-size: 17px calc(var(--th) * .8); background-position: 6px 100%; animation-duration: .41s; animation-delay: -.2s; opacity: .8; }
-  .fr-full.fr-smolder { opacity: .55; animation-duration: 2.6s; box-shadow: 0 0 5px color-mix(in srgb, var(--c) 45%, transparent), inset 0 -2px 4px rgba(0,0,0,.25); }
-  .fr-full.fr-smolder i { animation-duration: 1.2s; --th: 4px; }
-  .fr-full.fr-smolder::after { animation-duration: 1.8s; opacity: .25; }
-  @keyframes frFlow { to { background-position: 56px 0; } }
+  .fr-outline.fr-smolder::before { opacity: .5; animation-duration: 3s; box-shadow: 0 0 4px color-mix(in srgb, var(--c) 40%, transparent); }
+  .fr-outline.fr-smolder .flow { opacity: .4; animation-duration: 4.5s; }
+  .fr-outline.fr-smolder i { display: none; }
+  @keyframes frFlicker { 0%, 100% { opacity: .82; } 40% { opacity: 1; } 70% { opacity: .68; } }
+  @keyframes frOlFlow { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+  @keyframes frOlFlowV { from { background-position: 0 150%; } to { background-position: 0 -50%; } }
   @keyframes frTongues { from { transform: scaleY(.6); background-position-x: 0; } to { transform: scaleY(1.1); background-position-x: 5px; } }
-  .fire-today { position: absolute; z-index: 4; border-radius: 3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.55); pointer-events: none; }
-  .fr-faint.fr-surge, .fr-inplay.fr-surge { animation: frSurge .75s ease-out; }
-  .fr-full.fr-surge { animation: frFlow 1.1s linear infinite, frSurge .75s ease-out; }
+  /* Per grid: corner radius and flame height follow the size of the days. */
+  .compact-week .fr-outline, .compact-week .fr-inplay { border-radius: 6px; --th: 5px; }
+  .mc-grid .fr-outline, .mc-grid .fr-inplay { border-radius: 12px; }
+  .gh-heatmap-grid .fr-outline, .gh-heatmap-grid .fr-inplay { border-radius: 4px; }
+  .gh-heatmap-grid .fr-outline::before { border-width: 1px; }
+  .gh-heatmap-grid .fr-outline .flow { padding: 1px; background-image: linear-gradient(180deg, transparent 0 30%, var(--cl) 42%, #fff 50%, var(--cl) 58%, transparent 70% 100%); background-size: 100% 200%; animation-name: frOlFlowV; }
+  .gh-heatmap-grid .fr-outline i { display: none; }
+
+  /* Weekly habit, current week before its target: a thin unlit outline. */
+  .fr-inplay { z-index: 0; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--c) 24%, transparent); }
+
+  .fr-surge { animation: frSurge .75s ease-out; }
   @keyframes frSurge { 30% { filter: brightness(1.9) saturate(1.2); } }
 
   /* Habit cards and their expanded details sit on a tinted background, so their
@@ -1590,24 +1597,28 @@
   #page-streaks .seg,
   #page-streaks .streak-yday-btn,
   #page-streaks .compact-yday-btn { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.07); }
-  #page-streaks .heatmap-nav-btn:active, #page-streaks .streak-yday-btn:active { background: rgba(0,0,0,.45); }
+  #page-streaks .heatmap-nav-btn:active, #page-streaks .streak-yday-btn:active, #page-streaks .compact-yday-btn:active { background: rgba(0,0,0,.45); }
   #page-streaks .chart-empty { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.09); }
-  #page-streaks .streak-yday-btn.done, #page-streaks .compact-yday-btn.done { background: color-mix(in srgb, var(--c) 16%, rgba(0,0,0,.3)); border-color: color-mix(in srgb, var(--c) 40%, transparent); }
 
-  /* Flame square: burning / smoldering / out */
+  /* Flame square. Lit only when today is done (weekly: the week's target is met).
+     Streak alive but not done yet: dark, a hint of the habit color, and a small
+     ember glowing at the base of the flame. Out: gray, with smoke. */
   .fb { position: relative; transition: background .4s, box-shadow .4s; }
-  .fb svg { transform-origin: 50% 90%; }
+  .fb svg { transform-origin: 50% 90%; position: relative; z-index: 1; }
   .fb-blaze { background: linear-gradient(135deg, var(--c), var(--cd)); box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 45%, transparent); animation: fbGlow 1.8s ease-in-out infinite; }
   .fb-blaze svg { fill: #fff; animation: fbFlick 1.1s ease-in-out infinite; }
-  .fb-smolder { background: color-mix(in srgb, var(--c) 14%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 38%, transparent); }
-  .fb-smolder svg { fill: var(--c); animation: fbBreathe 2.8s ease-in-out infinite; }
+  .fb-smolder { background: color-mix(in srgb, var(--c) 7%, rgba(0,0,0,.38)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 17%, rgba(255,255,255,.04)); }
+  .fb-smolder svg { fill: color-mix(in srgb, var(--c) 26%, #2a272e); }
+  .fb-smolder::after { content: ''; position: absolute; z-index: 2; left: 31%; right: 31%; top: 57%; height: 24%; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+    background: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--cl) 70%, transparent) 0%, color-mix(in srgb, var(--c) 35%, transparent) 42%, transparent 72%);
+    animation: fbEmber 3.4s ease-in-out infinite; }
   .fb-dead { background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); }
   .fb-dead svg { fill: rgba(255,255,255,.17); }
   .compact-flame.fb-blaze { box-shadow: 0 3px 10px color-mix(in srgb, var(--c) 40%, transparent); }
   @keyframes fbFlick { 0%, 100% { transform: scale(1) skewX(0); } 25% { transform: scale(1.06, .95) skewX(-3deg); } 50% { transform: scale(.97, 1.06) skewX(2deg); } 75% { transform: scale(1.03, .98) skewX(-1deg); } }
   @keyframes fbGlow { 50% { box-shadow: 0 4px 22px color-mix(in srgb, var(--c) 72%, transparent); } }
-  @keyframes fbBreathe { 50% { opacity: .55; } }
-  .fb-boom { position: absolute; inset: -14px; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+  @keyframes fbEmber { 0%, 100% { opacity: .38; transform: scale(.9); } 45% { opacity: .85; transform: scale(1.06); } 70% { opacity: .5; } }
+  .fb-boom { position: absolute; z-index: 3; inset: -14px; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
     background: radial-gradient(circle, rgba(255,255,255,.95), color-mix(in srgb, var(--cl) 80%, transparent) 30%, color-mix(in srgb, var(--c) 45%, transparent) 55%, transparent 72%);
     animation: fbBoom .5s ease-out forwards; }
   @keyframes fbBoom { 0% { transform: scale(.3); opacity: 0; } 15% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
@@ -1627,13 +1638,14 @@
   @keyframes fxNumPop { 40% { transform: scale(1.4); color: var(--cl); text-shadow: 0 0 12px var(--c); } }
 
   /* Log button: tinted circle with a plus; solid fill with a check when done.
-     1–4 habits show the level with an arc. */
+     1–4 habits show the level with an arc. The done fill is painted under the
+     border too (border-box), so the transparent border doesn't show a mismatched rim. */
   .log-btn { position: relative; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     border: 1.5px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); color: var(--cl);
     transition: background .25s, border-color .25s, box-shadow .25s; }
   .streak-ring-btn .log-btn svg:not(.log-arc), .compact-ring-btn .log-btn svg:not(.log-arc) { width: 16px; height: 16px; overflow: visible; }
   .log-btn b { font: 800 15px 'Inter', sans-serif; font-variant-numeric: tabular-nums; }
-  .log-btn.on { background: linear-gradient(135deg, var(--c), var(--cd)); border-color: transparent; color: #fff; box-shadow: 0 3px 14px color-mix(in srgb, var(--c) 55%, transparent), inset 0 1px 0 rgba(255,255,255,.25); }
+  .log-btn.on { background: linear-gradient(135deg, var(--c), var(--cd)) border-box; border-color: transparent; color: #fff; box-shadow: 0 3px 14px color-mix(in srgb, var(--c) 55%, transparent); }
   .log-btn.scale:not(.on) { border-color: color-mix(in srgb, var(--c) 25%, transparent); }
   .streak-ring-btn .log-btn .log-arc, .compact-ring-btn .log-btn .log-arc { position: absolute; inset: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); transform: rotate(-90deg); pointer-events: none; }
   .log-arc circle { fill: none; stroke: var(--c); stroke-width: 2.6; stroke-linecap: round; }
@@ -1644,12 +1656,7 @@
   .fx-pop { animation: fxPop .45s cubic-bezier(.34, 1.56, .64, 1); }
   @keyframes fxPop { 45% { transform: scale(1.18); } }
 
-  /* Log yesterday: card and compact */
-  .streak-yday-btn.done { opacity: 1; color: var(--c); border-color: color-mix(in srgb, var(--c) 40%, var(--border)); background: color-mix(in srgb, var(--c) 12%, var(--surface2)); }
-  .streak-yday-btn, .compact-yday-btn { position: relative; }
-  .yday-arc { position: absolute; left: -1px; top: -1px; pointer-events: none; overflow: visible; }
-  .yday-arc rect { fill: none; stroke: var(--c); stroke-width: 1; stroke-linecap: butt; }
-  #page-streaks .streak-yday-btn.done.scale, #page-streaks .compact-yday-btn.done.scale { border-color: rgba(255,255,255,.1); }
+  /* Log yesterday: always the plain gray arrow; the grid shows whether yesterday is logged. */
   .compact-bot { display: flex; align-items: flex-end; gap: 7px; }
   .compact-bot .compact-week { flex: 1; min-width: 0; }
   .compact-yday-btn { width: 26px; height: 18px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim);
@@ -1658,7 +1665,18 @@
   .compact-yday-btn { margin-right: 4px; }
   .compact-yday-btn svg { width: 11px; height: 11px; }
   .compact-yday-btn:active { transform: scale(.92); }
-  .compact-yday-btn.done { color: var(--c); border-color: color-mix(in srgb, var(--c) 40%, var(--border)); background: color-mix(in srgb, var(--c) 12%, var(--surface2)); }
+
+  /* Log yesterday sheet (1–4 habits) */
+  .yd-sub { font-size: 12.5px; color: var(--text-muted); margin: -10px 0 16px; }
+  .yd-levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .yd-lvl { height: 64px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--c) 22%, var(--border)); background: var(--surface2); color: var(--text); cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; font: 800 20px 'Inter', sans-serif; font-variant-numeric: tabular-nums; transition: transform .1s; }
+  .yd-lvl i { display: flex; gap: 2px; }
+  .yd-lvl i s { width: 7px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); }
+  .yd-lvl i s.f { background: var(--c); }
+  .yd-lvl.on { background: color-mix(in srgb, var(--c) 22%, var(--surface2)); border-color: var(--c); box-shadow: 0 0 0 1px var(--c); }
+  .yd-lvl:active { transform: scale(.95); }
+  .yd-clear { color: #ff8585; }
 
   /* Cards / Compact switch */
   .view-seg { display: flex; gap: 2px; padding: 2px; background: var(--surface2); border: 1px solid var(--border-soft); border-radius: 10px; }
@@ -1667,7 +1685,7 @@
   .view-seg button.on { background: var(--surface3); color: var(--text); }
 
   @media (prefers-reduced-motion: reduce) {
-    .fire-run, .fire-run::after, .fire-run i, .fb, .fb svg, .fb-boom, .fx-pop, .fx-jolt, .fx-numpop, #page-streaks .streak-card, #page-streaks .compact-chip, .streak-card-main { animation: none !important; }
+    .fire-run, .fire-run::before, .fire-run .flow, .fire-run i, .fb, .fb::after, .fb svg, .fb-boom, .fx-pop, .fx-jolt, .fx-numpop, #page-streaks .streak-card, #page-streaks .compact-chip, .streak-card-main { animation: none !important; }
   }
 
   /* ══════════════════════════════════════════════════════
@@ -1948,7 +1966,7 @@
 
     <div class="settings-section-title">About</div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.5;padding:0 4px 4px">
-      Streaks · v2.3<br>
+      Streaks · v2.4<br>
       Private, offline-first habit & goal tracker
     </div>
 
@@ -2624,7 +2642,7 @@ function fxDraw() {
     const k = p.life / p.max;
     if (p.t === 'ember') {
       ctx.globalCompositeOperation = 'lighter';
-      const a = Math.min(1, k / .12) * (1 - k), flick = .75 + .25 * Math.sin(p.life * 40 + p.x);
+      const a = Math.min(1, k / .12) * (1 - k) * (p.a || 1), flick = .75 + .25 * Math.sin(p.life * 40 + p.x);
       const hc = fxHeat((1 - k) * p.h0, p.stops);
       fxGlow(p.x, p.y, p.s * 4, hc, a * .35 * flick);
       ctx.fillStyle = `rgb(${hc})`; ctx.globalAlpha = a * flick; fxCirc(p.x, p.y, p.s);
@@ -2687,11 +2705,11 @@ function fxAmbient(dt) {
     fxSpark(r.left + r.width / 2 + fxRand(-16, 16), r.top + r.height / 2 + fxRand(-12, 12), { s: fxRand(2.4, 3.8), max: fxRand(.5, .8) });
   });
   // Streaks: embers off the compact fire bands and burning flame squares, smoke off dead ones.
-  document.querySelectorAll('.page.active .fr-full').forEach(run => {
+  document.querySelectorAll('.page.active .fr-outline').forEach(run => {
     const r = run.getBoundingClientRect();
     if (!r.width || r.bottom < 0 || r.top > fxH) return;
     const hot = run.classList.contains('fr-blaze');
-    if (Math.random() > dt * (hot ? 1.5 : .45) * Math.max(1, r.width / 40)) return;
+    if (Math.random() > dt * (hot ? .5 : .12) * Math.max(1, r.width / 40)) return;
     fxEmber(r.left + fxRand(2, r.width - 2), r.top + 1, { stops: fxStopsOf(run), vx: fxRand(-8, 8), vy: fxRand(-45, -15), g: -6, max: fxRand(.5, 1), s: fxRand(.6, 1.2), h0: hot ? fxRand(.8, 1) : fxRand(.55, .8) });
   });
   document.querySelectorAll('.page.active .fb-blaze').forEach(f => {
@@ -2700,6 +2718,13 @@ function fxAmbient(dt) {
     if (!r.width || r.bottom < 0 || r.top > fxH) return;
     fxEmber(r.left + r.width / 2 + fxRand(-8, 8), r.top + 6, { stops: fxStopsOf(f), vy: fxRand(-55, -25), max: fxRand(.4, .8), s: fxRand(.7, 1.3) });
   });
+  // Not done yet: now and then a single dim spark lifts off the ember.
+  document.querySelectorAll('.page.active .fb-smolder').forEach(f => {
+    if (Math.random() > dt * .22) return;
+    const r = f.getBoundingClientRect();
+    if (!r.width || r.bottom < 0 || r.top > fxH) return;
+    fxEmber(r.left + r.width / 2 + fxRand(-2, 2), r.top + r.height * .66, { stops: fxStopsOf(f), vx: fxRand(-5, 5), vy: fxRand(-28, -14), g: -4, max: fxRand(.7, 1.1), s: fxRand(.5, .9), h0: fxRand(.5, .7), a: .7 });
+  });
   document.querySelectorAll('.page.active .fb-dead').forEach(f => {
     if (Math.random() > dt * .7) return;
     const r = f.getBoundingClientRect();
@@ -2707,7 +2732,7 @@ function fxAmbient(dt) {
     fxSmoke(r.left + r.width / 2 + fxRand(-3, 3), r.top + r.height * .35, { s: fxRand(3, 5), vy: fxRand(-16, -8), vx: fxRand(-4, 4), max: fxRand(1.3, 2), col: '120,114,124', a: .2 });
   });
 }
-const FX_AMBIENT_SEL = '.page.active .lv-row.lv-smolder, .page.active .lv-row.lv-twinkle, .page.active .fr-full, .page.active .fb-blaze, .page.active .fb-dead';
+const FX_AMBIENT_SEL = '.page.active .lv-row.lv-smolder, .page.active .lv-row.lv-twinkle, .page.active .fr-outline, .page.active .fb-blaze, .page.active .fb-smolder, .page.active .fb-dead';
 const fxNeedsAmbient = () => !fxQuiet() && !!document.querySelector(FX_AMBIENT_SEL);
 
 function fxKick() {
@@ -4185,9 +4210,8 @@ function fireAttrs(info, ds) {
    expanding a card or opening Edit history calls it again). */
 function fireDecorate(root) {
   (root || document).querySelectorAll('[data-fire-grid]').forEach(grid => {
-    grid.querySelectorAll(':scope > .fire-run, :scope > .fire-today').forEach(e => e.remove());
+    grid.querySelectorAll(':scope > .fire-run').forEach(e => e.remove());
     if (!grid.offsetWidth) return;
-    const style = grid.dataset.fireGrid;
     const vertical = grid.dataset.fireDir === 'col';
     const pad = +(grid.dataset.firePad || 3);
     const g = grid.getBoundingClientRect();
@@ -4207,12 +4231,11 @@ function fireDecorate(root) {
         if (!seg.length) return;
         const l = Math.min(...seg.map(r => r.l)), t = Math.min(...seg.map(r => r.t));
         const rr = Math.max(...seg.map(r => r.l + r.w)), bb = Math.max(...seg.map(r => r.t + r.h));
-        const full = style === 'full' && kind !== 'inplay', pd = full ? 0 : pad;
         const el = document.createElement('div');
-        el.className = `fire-run ${kind === 'inplay' ? 'fr-inplay' : full ? 'fr-full fr-' + kind : 'fr-faint fr-' + kind}`;
-        el.style.cssText = `left:${l - pd}px;top:${t - pd}px;width:${rr - l + pd * 2}px;height:${bb - t + pd * 2}px`;
+        el.className = `fire-run ${kind === 'inplay' ? 'fr-inplay' : 'fr-outline fr-' + kind}`;
+        el.style.cssText = `left:${l - pad}px;top:${t - pad}px;width:${rr - l + pad * 2}px;height:${bb - t + pad * 2}px`;
         el.dataset.from = seg[0].d; el.dataset.to = seg[seg.length - 1].d; el.dataset.n = seg.length;
-        if (full) el.innerHTML = '<i></i><i></i>';
+        if (kind !== 'inplay') el.innerHTML = '<span class="flow"></span><i></i>';
         grid.appendChild(el);
         seg = [];
       };
@@ -4226,15 +4249,6 @@ function fireDecorate(root) {
       });
       flush();
     });
-    if (style === 'full') {   // the fire covers today's ring, so redraw the ring on top
-      const t = grid.querySelector('.today-ring');
-      if (t && grid.querySelector('.fr-full')) {
-        const r = box(t), el = document.createElement('div');
-        el.className = 'fire-today';
-        el.style.cssText = `left:${r.l}px;top:${r.t}px;width:${r.w}px;height:${r.h}px`;
-        grid.appendChild(el);
-      }
-    }
   });
 }
 let fireResizeT = null;
@@ -4253,20 +4267,12 @@ function logBtnHtml(habit, small) {
   }
   return `<span class="log-btn${sz}${L ? ' on' : ''}">${L ? LOG_CHECK : LOG_PLUS}</span>`;
 }
-/* The yesterday button's own border, filled clockwise from top center by level (1–4 habits). */
-function ydayLevelBorder(L, w, h, r) {
-  const x = .5, y = .5, rw = w - 1, rh = h - 1, rr = r - .5;   // a 1px line centered on the 1px border
-  const per = 2 * (rw + rh) - (8 - 2 * Math.PI) * rr;
-  const startShift = (rw / 2 - rr) / per * 100;   // the rect's path starts at its top-left corner
-  return `<svg class="yday-arc" style="width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}"><rect x="${x}" y="${y}" width="${rw}" height="${rh}" rx="${rr}" pathLength="100" stroke-dasharray="${L >= 4 ? 'none' : `${L * 25} ${100 - L * 25}`}" stroke-dashoffset="${(-startShift).toFixed(2)}"/></svg>`;
-}
+/* Log yesterday: always the plain gray arrow. Binary habits toggle yesterday;
+   1–4 habits open a sheet to pick the level (ydaySheet). */
 function ydayBtnHtml(habit, cls) {
   const L = habitLevel(habit, dateStr(addDays(new Date(), -1)));
-  const scale = habit.type === 'gradient';
-  const compact = cls === 'compact-yday-btn';
-  const border = scale && L ? ydayLevelBorder(L, compact ? 26 : 32, compact ? 18 : 20, 6) : '';
-  const label = !L ? 'Log yesterday' : scale ? `Yesterday: level ${L} of 4` : 'Undo yesterday';
-  return `<button class="${cls}${L ? ' done' : ''}${scale ? ' scale' : ''}" onclick="event.stopPropagation();logHabitDay('${habit.id}','yday')" aria-label="${label}">${border}${L ? LOG_CHECK : LOG_YDAY}</button>`;
+  const label = habit.type === 'gradient' ? 'Log yesterday' : L ? 'Undo yesterday' : 'Log yesterday';
+  return `<button class="${cls}" onclick="event.stopPropagation();logHabitDay('${habit.id}','yday')" aria-label="${label}">${LOG_YDAY}</button>`;
 }
 
 const expandedHabits = new Set();
@@ -4393,7 +4399,7 @@ function renderCompactChip(habit) {
         <button class="compact-ring-btn" onclick="event.stopPropagation();logHabitDay('${habit.id}','today')" aria-label="Log today">${logBtnHtml(habit, true)}</button>
       </div>
       <div class="compact-bot">
-        <div class="compact-week" data-fire-grid="full">${buildCompactWeek(habit, col, fire)}</div>
+        <div class="compact-week" data-fire-grid>${buildCompactWeek(habit, col, fire)}</div>
         ${ydayBtnHtml(habit, 'compact-yday-btn')}
       </div>
     </div>
@@ -4531,7 +4537,7 @@ function renderStreakCard(habit) {
           <div style="flex:1"></div>
           <div class="streak-dot-section">
             <div class="streak-dow-labels">${dowLabels}</div>
-            <div class="streak-dot-grid" data-fire-grid="faint">${dotHtml}</div>
+            <div class="streak-dot-grid" data-fire-grid>${dotHtml}</div>
           </div>
           <div class="streak-controls">
             <button class="streak-dots-btn" onclick="event.stopPropagation();openHabitAction('${habit.id}')" aria-label="Habit options">⋮</button>
@@ -4742,7 +4748,7 @@ function renderStreakAnalytics(habit) {
       </div>
       <div class="gh-heatmap-outer">
         <div class="gh-heatmap-dow-labels">${dowLabelsHtml}</div>
-        <div class="gh-heatmap-grid" data-fire-grid="faint" data-fire-dir="col" data-fire-pad="1.5">${weekColsHtml}</div>
+        <div class="gh-heatmap-grid" data-fire-grid data-fire-dir="col" data-fire-pad="1.5">${weekColsHtml}</div>
       </div>`}
       <div style="margin-top:14px">
         <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Adherence trend</div>
@@ -4920,16 +4926,18 @@ function toggleHabitExpand(habitId) {
 
 /* Log today or yesterday. Binary habits toggle; 1–4 habits step
    0 → 1 → 2 → 3 → 4 → 0. Plays the streak effects after redrawing. */
-function logHabitDay(habitId, which) {
+function logHabitDay(habitId, which, level) {
   if (dragState) return;
   const habit = data.streaks.habits.find(h => h.id === habitId);
   if (!habit) return;
   const ds = which === 'yday' ? dateStr(addDays(new Date(), -1)) : todayStr();
+  if (habit.type === 'gradient' && which === 'yday' && level === undefined) { ydaySheet(habit); return; }
   const before = streakFire(habit);
   const prev = habitLevel(habit, ds);
   let next;
   if (habit.type === 'gradient') {
-    next = prev >= 4 ? 0 : prev + 1;
+    next = level !== undefined ? level : prev >= 4 ? 0 : prev + 1;
+    if (next === prev) return;
     const idx = habit.history.findIndex(e => e.date === ds);
     if (!next) { if (idx >= 0) habit.history.splice(idx, 1); }
     else if (idx >= 0) habit.history[idx].level = next;
@@ -4942,6 +4950,22 @@ function logHabitDay(habitId, which) {
   saveData(data);
   renderStreaks();
   fxHabitLogged(habit, ds, which, prev, next, before);
+}
+
+/* Log yesterday on a 1–4 habit: pick the level, or Clear. Rendered into #lvSheet
+   like the other menus, in the habit's color. */
+function ydaySheet(habit) {
+  const yd = addDays(new Date(), -1), L = habitLevel(habit, dateStr(yd));
+  const id = habit.id;
+  lvSheetBtns = [0, 1, 2, 3, 4].map(n => ({ fn: () => logHabitDay(id, 'yday', n) }));
+  const ov = document.getElementById('lvSheet');
+  sheetColor(ov, habitColor(habit));
+  const when = yd.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  ov.innerHTML = `<div class="modal"><div class="fs-eyebrow">Log yesterday</div><div class="modal-title">${escHtml(habit.name)}</div>
+    <div class="yd-sub">${when}${L ? ` · logged at ${L}` : ''}</div>
+    <div class="yd-levels">${[1, 2, 3, 4].map(n => `<button class="yd-lvl${n === L ? ' on' : ''}" onclick="lvSheetPick(${n})" aria-label="Level ${n}">${n}<i>${[1, 2, 3, 4].map(k => `<s class="${k <= n ? 'f' : ''}"></s>`).join('')}</i></button>`).join('')}</div>
+    <div class="modal-actions">${L ? '<button class="btn-cancel yd-clear" onclick="lvSheetPick(0)">Clear</button>' : ''}<button class="btn-cancel" onclick="lvSheetClose()">Cancel</button></div></div>`;
+  ov.classList.add('open');
 }
 // Older names, kept so nothing that still calls them breaks.
 function toggleBinaryToday(habitId) { logHabitDay(habitId, 'today'); }
@@ -5148,7 +5172,7 @@ function monthCalHtml(habit, offset, mode) {
       <div class="heatmap-nav-label">${label}</div>
       <button class="heatmap-nav-btn" onclick="event.stopPropagation();(${shift})(-1)" ${offset > 0 ? '' : 'disabled'} aria-label="Next month">&#8250;</button>
     </div>
-    <div class="mc-grid" data-fire-grid="faint">${dows}${cells}</div>${foot}</div>`;
+    <div class="mc-grid" data-fire-grid>${dows}${cells}</div>${foot}</div>`;
 }
 
 function shiftMonthCal(habitId, dir) {
