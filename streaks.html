@@ -1584,6 +1584,17 @@
   .gh-heatmap-grid .fr-outline .flow { padding: 1px; background-image: linear-gradient(180deg, transparent 0 30%, var(--cl) 42%, #fff 50%, var(--cl) 58%, transparent 70% 100%); background-size: 100% 200%; animation-name: frOlFlowV; }
   .gh-heatmap-grid .fr-outline i { display: none; }
 
+  /* A finished week (weekly habits): a dim fiery wash behind the whole week, so the
+     days between logs read as part of it. Dimmer while this week's goal is still open. */
+  .fr-wash { z-index: 1; border-radius: 7px; mix-blend-mode: screen;
+    background: linear-gradient(0deg, color-mix(in srgb, var(--c) 34%, transparent), color-mix(in srgb, var(--cl) 13%, transparent) 80%);
+    animation: frWash 4.2s ease-in-out infinite; }
+  .fr-wash.fr-smolder { opacity: .5; animation-duration: 6s; }
+  @keyframes frWash { 0%, 100% { filter: brightness(1); } 45% { filter: brightness(1.35); } 70% { filter: brightness(.9); } }
+  .compact-week .fr-wash { border-radius: 5px; }
+  .mc-grid .fr-wash { border-radius: 11px; }
+  .gh-heatmap-grid .fr-wash { border-radius: 3px; }
+
   /* Weekly habit, current week before its target: a thin unlit outline. */
   .fr-inplay { z-index: 0; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--c) 24%, transparent); }
 
@@ -1600,7 +1611,8 @@
   #page-streaks .heatmap-nav-btn:active, #page-streaks .streak-yday-btn:active, #page-streaks .compact-yday-btn:active { background: rgba(0,0,0,.45); }
   #page-streaks .chart-empty { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.09); }
 
-  /* Flame square. Lit only when today is done (weekly: the week's target is met).
+  /* Flame square (streakFire().flame). Lit when today is done; times-a-week habits only
+     when the week's goal is met, and halfway (fb-half) on a day logged before that.
      Streak alive but not done yet: dark, a hint of the habit color, and a small
      ember glowing at the base of the flame. Out: gray, with smoke. */
   .fb { position: relative; transition: background .4s, box-shadow .4s; }
@@ -1612,6 +1624,10 @@
   .fb-smolder::after { content: ''; position: absolute; z-index: 2; left: 31%; right: 31%; top: 57%; height: 24%; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
     background: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--cl) 70%, transparent) 0%, color-mix(in srgb, var(--c) 35%, transparent) 42%, transparent 72%);
     animation: fbEmber 3.4s ease-in-out infinite; }
+  /* Halfway (times-a-week habits): logged today, the week's goal isn't met yet. */
+  .fb-half { background: color-mix(in srgb, var(--c) 14%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 38%, transparent); }
+  .fb-half svg { fill: var(--c); animation: fbBreathe 2.8s ease-in-out infinite; }
+  @keyframes fbBreathe { 50% { opacity: .55; } }
   .fb-dead { background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); }
   .fb-dead svg { fill: rgba(255,255,255,.17); }
   .compact-flame.fb-blaze { box-shadow: 0 3px 10px color-mix(in srgb, var(--c) 40%, transparent); }
@@ -4161,6 +4177,9 @@ function getTotalCompletions(habit) {
      'smolder' — streak alive, today not logged yet (weekly: streak alive,
                  or something logged this week)
      'dead'    — no streak
+   flame is what the flame square shows: the state for daily habits; for
+   times-a-week habits 'half' once today is logged but the goal isn't met yet;
+   for some-days habits 'blaze' when today is logged, like a daily habit.
    Grids mark each streak cell with fireAttrs(); fireDecorate() measures
    those cells and lays the bars: faint behind cards / calendars / the
    4-month grid, full fire over the compact week strip. A weekly habit's
@@ -4176,7 +4195,7 @@ function streakFire(habit) {
       : habitLevel(habit, dateStr(addDays(today, -1))) > 0 ? addDays(today, -1) : null;
     while (cur && habitLevel(habit, dateStr(cur)) > 0) { days.add(dateStr(cur)); cur = addDays(cur, -1); }
     const state = habitLevel(habit, tds) > 0 ? 'blaze' : days.size ? 'smolder' : 'dead';
-    return { freq, state, days, weeks, curWeek: null, inPlay: false };
+    return { freq, state, flame: state, days, weeks, curWeek: null, inPlay: false };
   }
   const thisWS = getWeekSunday(today);
   const curDone = isWeekComplete(habit, thisWS);
@@ -4188,8 +4207,15 @@ function streakFire(habit) {
     if (!isWeekComplete(habit, ws)) break;
     weeks.add(dateStr(ws));
   }
-  const state = curDone ? 'blaze' : (weeks.size || isWeekInProgress(habit, thisWS)) ? 'smolder' : 'dead';
-  return { freq, state, days, weeks, curWeek: dateStr(thisWS), inPlay: !curDone && state !== 'dead' };
+  const loggedToday = habitLevel(habit, tds) > 0;
+  let state = curDone ? 'blaze' : (weeks.size || isWeekInProgress(habit, thisWS)) ? 'smolder' : 'dead';
+  if (state === 'dead' && loggedToday) state = 'smolder';   // logged on an off day: alive, not gray
+  // Flame square. Times a week: dark → halfway (logged today, goal not met yet) → lit (goal met).
+  // Some days: like a daily habit, lit when today is logged.
+  const flame = freq === 'custom'
+    ? (curDone ? 'blaze' : loggedToday ? 'half' : state)
+    : (loggedToday ? 'blaze' : state === 'dead' ? 'dead' : 'smolder');
+  return { freq, state, flame, days, weeks, curWeek: dateStr(thisWS), inPlay: !curDone && state !== 'dead' };
 }
 
 /* data-fire="key|kind" on a streak cell; cells sharing a key form one bar
@@ -4237,6 +4263,13 @@ function fireDecorate(root) {
         el.dataset.from = seg[0].d; el.dataset.to = seg[seg.length - 1].d; el.dataset.n = seg.length;
         if (kind !== 'inplay') el.innerHTML = '<span class="flow"></span><i></i>';
         grid.appendChild(el);
+        if (kind !== 'inplay' && k.split('|')[0] !== 's') {   // a finished week: a dim fiery wash behind its days
+          const w = document.createElement('div'), wp = Math.max(0, pad - 1.5);
+          w.className = `fire-run fr-wash fr-${kind}`;
+          w.style.cssText = `left:${l - wp}px;top:${t - wp}px;width:${rr - l + wp * 2}px;height:${bb - t + wp * 2}px`;
+          w.dataset.from = el.dataset.from; w.dataset.to = el.dataset.to; w.dataset.n = el.dataset.n;
+          grid.appendChild(w);
+        }
         seg = [];
       };
       rects.forEach(r => {
@@ -4391,7 +4424,7 @@ function renderCompactChip(habit) {
   return `
     <div class="compact-chip${habitLevel(habit, todayStr()) > 0 ? ' logged' : ''} st-${fire.state}" data-habit-id="${habit.id}" onclick="openHabitPage('${habit.id}')" style="${hexVars(col)}">
       <div class="compact-chip-top">
-        <div class="compact-flame fb fb-${fire.state}">${flameSvg('currentColor', 16)}</div>
+        <div class="compact-flame fb fb-${fire.flame}">${flameSvg('currentColor', 16)}</div>
         <div class="compact-text">
           <div class="compact-name">${escHtml(habit.name)}</div>
           <div class="compact-sub">${sub}</div>
@@ -4503,7 +4536,7 @@ function renderStreakCard(habit) {
           <div class="streak-left-col">
             <div class="streak-name">${escHtml(habit.name)}</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-              <div class="streak-flame-box fb fb-${fire.state}">${flameSvg('currentColor', 22)}</div>
+              <div class="streak-flame-box fb fb-${fire.flame}">${flameSvg('currentColor', 22)}</div>
               <div class="streak-count-wrap">
                 <div style="display:flex;align-items:baseline;gap:5px">
                   <div class="streak-big-number" style="color:${col}">${streak}</div>
