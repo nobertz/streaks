@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Streaks">
@@ -87,6 +88,21 @@
     margin: 0 auto;
     background: var(--bg);
     z-index: 10;
+  }
+
+  /* Status bar (Oct 2026): with viewport-fit=cover the page reaches the top of
+     the screen, so the header's background now sits behind the clock and battery.
+     The block above the header paints over anything that could still scroll into
+     view up there. Bottom insets are deliberately not used anywhere: before
+     viewport-fit=cover they were always 0, and using them now would lift the FAB,
+     toast, sheets and Streaky by the height of the home bar. */
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 100%;
+    height: 400px;
+    background: var(--bg);
   }
 
   /* Holds the place of the fixed header in normal flow. The CSS value is a
@@ -295,7 +311,6 @@
     border-radius: var(--radius);
     overflow: hidden;
     transition: border-color 0.2s;
-    animation: fadeSlideIn 0.3s ease both;
     margin-bottom: 7px;
   }
 
@@ -381,10 +396,11 @@
   }
   .s-dot {
     border-radius: 5px;
-    background: var(--surface3);
+    background: rgba(0,0,0,0.34);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07);
     transition: background 0.2s, opacity 0.2s;
   }
-  .s-dot.future { opacity: 0.15; }
+  .s-dot.future { opacity: 0.35; }
   .s-dot.today-ring { box-shadow: 0 0 0 2px rgba(255,255,255,0.55); }
 
   .streak-controls {
@@ -541,7 +557,8 @@
     width: 100%;
     height: 11px;
     border-radius: 2px;
-    background: var(--surface3);
+    background: rgba(0,0,0,0.34);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
     flex-shrink: 0;
   }
   .h-dot.empty { background: transparent; pointer-events: none; }
@@ -558,7 +575,7 @@
   /* ── FOCUS FAB (floating action button, bottom-right) ── */
   .focus-fab {
     position: fixed;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+    bottom: 22px;   /* see the note at .header: bottom insets stay 0 so the FAB doesn't move */
     right: 20px;
     z-index: 50;
     display: flex;
@@ -619,7 +636,7 @@
   .modal {
     background: var(--surface);
     border-radius: 22px 22px 0 0;
-    padding: 26px 22px calc(env(safe-area-inset-bottom, 0px) + 32px);
+    padding: 26px 22px 32px;
     width: 100%;
     max-width: 430px;
     margin: 0 auto;
@@ -814,7 +831,6 @@
     cursor: pointer;
     min-height: 50px;
     transition: transform 0.12s, border-color 0.2s;
-    animation: fadeSlideIn 0.25s ease both;
   }
   .compact-chip-top {
     display: flex;
@@ -831,9 +847,10 @@
   .compact-dot {
     height: 5px;
     border-radius: 2.5px;
-    background: rgba(255,255,255,0.09);
+    background: rgba(0,0,0,0.4);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
   }
-  .compact-dot.future { background: rgba(255,255,255,0.04); }
+  .compact-dot.future { background: rgba(0,0,0,0.2); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
   .compact-dot.today-ring { box-shadow: 0 0 0 1.5px rgba(255,255,255,0.30); }
 
   /* ── Day markers (habit.marks) ──
@@ -1027,7 +1044,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 0 14px calc(18px + env(safe-area-inset-bottom, 0px));
+      padding: 0 14px 18px;
     }
 
     .streaky-portrait-wrap {
@@ -1250,6 +1267,18 @@
     }
     .sk-tag.overdue { background: rgba(245,158,11,0.16); color: #f59e0b; }
     .sk-tag.soon { background: rgba(251,146,60,0.16); color: #fb923c; }
+    .sk-bucket-row {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px;
+      background: color-mix(in srgb, var(--c) 8%, var(--surface2));
+      border: 1px solid color-mix(in srgb, var(--c) 22%, var(--border));
+      border-radius: 11px;
+      margin-bottom: 8px;
+    }
+    .sk-bucket-star { width: 18px; height: 18px; flex-shrink: 0; color: var(--c); display: flex; }
+    .sk-bucket-star svg { width: 18px; height: 18px; }
+    .sk-bucket-tag { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .sk-bucket-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); display: inline-block; }
 
     .streaky-next {
       position: absolute;
@@ -1481,7 +1510,7 @@
   .lv-goals-empty { color:var(--text-muted); font-size:14px; line-height:1.5; padding:30px 8px; text-align:center; }
 
   /* toast + sheet */
-  .lv-toast { position:fixed; left:18px; right:84px; max-width:330px; bottom:calc(env(safe-area-inset-bottom, 0px) + 26px); display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface3); border:1px solid var(--border); color:var(--text); font-size:13px; padding:11px 14px; border-radius:14px; opacity:0; transform:translateY(12px); transition:all .25s; pointer-events:none; z-index:60; box-shadow:0 8px 30px rgba(0,0,0,.5); }
+  .lv-toast { position:fixed; left:18px; right:84px; max-width:330px; bottom:26px; display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface3); border:1px solid var(--border); color:var(--text); font-size:13px; padding:11px 14px; border-radius:14px; opacity:0; transform:translateY(12px); transition:all .25s; pointer-events:none; z-index:60; box-shadow:0 8px 30px rgba(0,0,0,.5); }
   .lv-toast.show { opacity:1; transform:none; pointer-events:auto; }
   .lv-toast button { background:none; border:none; color:#60a5fa; font:700 13px 'Inter',sans-serif; cursor:pointer; padding:2px 4px; }
   .lv-sheet-sub { font-size:12px; color:var(--text-muted); margin:-10px 0 14px; }
@@ -1510,6 +1539,189 @@
   .lv-tile.drag-source { opacity:1; background:transparent; border:1.5px dashed color-mix(in srgb,var(--c) 55%,var(--border)); }
   .lv-tile.drag-source > * { visibility:hidden; }
   .lv-tiles.lv-dragging .lv-tile { transition:none; }
+
+  /* ══════════════════════════════════════════════════════
+     STREAK FIRE (Oct 2026)
+     Bars are laid by fireDecorate() over cells marked data-fire.
+     fr-faint: cards, month calendar, 4-month grid, Edit history.
+     fr-full:  the compact week strip. fr-inplay: a weekly habit's
+     current week before its target is met.
+     ══════════════════════════════════════════════════════ */
+  /* Cards only fade in when you arrive on the tab, not on every redraw. */
+  #page-streaks.st-enter .streak-card { animation: fadeSlideIn .3s ease both; }
+  #page-streaks.st-enter .compact-chip { animation: fadeSlideIn .25s ease both; }
+
+  .streak-dot-grid, .compact-week, .gh-heatmap-grid, .mc-grid { position: relative; }
+  .streak-dot-grid > :not(.fire-run), .compact-week > :not(.fire-run):not(.fire-today), .gh-week-col > *, .mc-grid > :not(.fire-run) { position: relative; z-index: 1; }
+  .compact-week > .mk-cell { z-index: 3; }
+  .fire-run { position: absolute; pointer-events: none; }
+  .fr-faint { z-index: 0; border-radius: 7px; background: color-mix(in srgb, var(--c) 26%, transparent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--c) 38%, transparent); animation: frBreath 2.4s ease-in-out infinite; }
+  .fr-faint.fr-smolder { background: color-mix(in srgb, var(--c) 13%, transparent); box-shadow: 0 0 8px color-mix(in srgb, var(--c) 18%, transparent); animation-duration: 3.6s; }
+  @keyframes frBreath { 50% { box-shadow: 0 0 18px color-mix(in srgb, var(--c) 55%, transparent); } }
+  .fr-inplay { z-index: 0; border-radius: 7px; border: 1px dashed color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 7%, transparent); }
+  .gh-heatmap-grid .fr-faint, .gh-heatmap-grid .fr-inplay { border-radius: 4px; }
+  .mc-grid .fr-faint, .mc-grid .fr-inplay { border-radius: 12px; }
+  .compact-week .fr-inplay { border-radius: 5px; }
+  .fr-full { z-index: 2; border-radius: 3px; --th: 8px;
+    background: linear-gradient(90deg, var(--cd), var(--c) 25%, var(--cl) 50%, var(--c) 75%, var(--cd)) 0 0 / 56px 100% repeat-x;
+    box-shadow: 0 0 9px color-mix(in srgb, var(--c) 70%, transparent), inset 0 -2px 4px rgba(0,0,0,.22), inset 0 1px 2px rgba(255,255,255,.3);
+    animation: frFlow 1.1s linear infinite; }
+  .fr-full::after { content: ''; position: absolute; inset: 30% 3px; border-radius: 3px; mix-blend-mode: overlay; opacity: .4;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent) 0 0 / 38px 100% repeat-x; animation: frFlow .7s linear infinite reverse; }
+  .fr-full i { position: absolute; left: 1px; right: 1px; bottom: 72%; height: var(--th); pointer-events: none; transform-origin: 50% 100%; mix-blend-mode: screen; filter: blur(.9px);
+    background: radial-gradient(ellipse 42% 100% at 50% 100%, color-mix(in srgb, var(--cl) 80%, transparent) 0%, color-mix(in srgb, var(--c) 55%, transparent) 48%, transparent 72%) 0 100% / 11px var(--th) repeat-x;
+    animation: frTongues .55s ease-in-out infinite alternate; }
+  .fr-full i + i { background-size: 17px calc(var(--th) * .8); background-position: 6px 100%; animation-duration: .41s; animation-delay: -.2s; opacity: .8; }
+  .fr-full.fr-smolder { opacity: .55; animation-duration: 2.6s; box-shadow: 0 0 5px color-mix(in srgb, var(--c) 45%, transparent), inset 0 -2px 4px rgba(0,0,0,.25); }
+  .fr-full.fr-smolder i { animation-duration: 1.2s; --th: 4px; }
+  .fr-full.fr-smolder::after { animation-duration: 1.8s; opacity: .25; }
+  @keyframes frFlow { to { background-position: 56px 0; } }
+  @keyframes frTongues { from { transform: scaleY(.6); background-position-x: 0; } to { transform: scaleY(1.1); background-position-x: 5px; } }
+  .fire-today { position: absolute; z-index: 4; border-radius: 3px; box-shadow: 0 0 0 1.5px rgba(255,255,255,.55); pointer-events: none; }
+  .fr-faint.fr-surge, .fr-inplay.fr-surge { animation: frSurge .75s ease-out; }
+  .fr-full.fr-surge { animation: frFlow 1.1s linear infinite, frSurge .75s ease-out; }
+  @keyframes frSurge { 30% { filter: brightness(1.9) saturate(1.2); } }
+
+  /* Habit cards and their expanded details sit on a tinted background, so their
+     gray panels use a darker fill with a faint edge (same as the day squares). */
+  #page-streaks .stat-box,
+  #page-streaks .heatmap-nav-btn,
+  #page-streaks .seg,
+  #page-streaks .streak-yday-btn,
+  #page-streaks .compact-yday-btn { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.07); }
+  #page-streaks .heatmap-nav-btn:active, #page-streaks .streak-yday-btn:active { background: rgba(0,0,0,.45); }
+  #page-streaks .chart-empty { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.09); }
+  #page-streaks .streak-yday-btn.done, #page-streaks .compact-yday-btn.done { background: color-mix(in srgb, var(--c) 16%, rgba(0,0,0,.3)); border-color: color-mix(in srgb, var(--c) 40%, transparent); }
+
+  /* Flame square: burning / smoldering / out */
+  .fb { position: relative; transition: background .4s, box-shadow .4s; }
+  .fb svg { transform-origin: 50% 90%; }
+  .fb-blaze { background: linear-gradient(135deg, var(--c), var(--cd)); box-shadow: 0 4px 14px color-mix(in srgb, var(--c) 45%, transparent); animation: fbGlow 1.8s ease-in-out infinite; }
+  .fb-blaze svg { fill: #fff; animation: fbFlick 1.1s ease-in-out infinite; }
+  .fb-smolder { background: color-mix(in srgb, var(--c) 14%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 38%, transparent); }
+  .fb-smolder svg { fill: var(--c); animation: fbBreathe 2.8s ease-in-out infinite; }
+  .fb-dead { background: rgba(255,255,255,.04); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07); }
+  .fb-dead svg { fill: rgba(255,255,255,.17); }
+  .compact-flame.fb-blaze { box-shadow: 0 3px 10px color-mix(in srgb, var(--c) 40%, transparent); }
+  @keyframes fbFlick { 0%, 100% { transform: scale(1) skewX(0); } 25% { transform: scale(1.06, .95) skewX(-3deg); } 50% { transform: scale(.97, 1.06) skewX(2deg); } 75% { transform: scale(1.03, .98) skewX(-1deg); } }
+  @keyframes fbGlow { 50% { box-shadow: 0 4px 22px color-mix(in srgb, var(--c) 72%, transparent); } }
+  @keyframes fbBreathe { 50% { opacity: .55; } }
+  .fb-boom { position: absolute; inset: -14px; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+    background: radial-gradient(circle, rgba(255,255,255,.95), color-mix(in srgb, var(--cl) 80%, transparent) 30%, color-mix(in srgb, var(--c) 45%, transparent) 55%, transparent 72%);
+    animation: fbBoom .5s ease-out forwards; }
+  @keyframes fbBoom { 0% { transform: scale(.3); opacity: 0; } 15% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+  /* Out: the habit drains of color (cards keep their details colored) */
+  #page-streaks .streak-card.st-dead, #page-streaks .compact-chip.st-dead { background: var(--surface); border-color: var(--border-soft); }
+  #page-streaks .streak-card.st-dead .streak-card-main, #page-streaks .compact-chip.st-dead { filter: saturate(.12) brightness(.92); }
+  #page-streaks .streak-card.fx-revive .streak-card-main, #page-streaks .compact-chip.fx-revive { animation: fxRevive .8s ease-out; }
+  #page-streaks .streak-card.fx-die .streak-card-main, #page-streaks .compact-chip.fx-die { animation: fxDie .8s ease-out; }
+  @keyframes fxRevive { from { filter: saturate(.12) brightness(.92); } to { filter: none; } }
+  @keyframes fxDie { from { filter: none; } to { filter: saturate(.12) brightness(.92); } }
+  #page-streaks .compact-sub { color: var(--c); }
+  #page-streaks .compact-chip.st-dead .compact-sub { color: var(--text-dim); }
+  .fx-jolt { animation: fxJolt .3s ease-out; }
+  @keyframes fxJolt { 20% { transform: translate(1.5px, -1px); } 45% { transform: translate(-1.5px, 1px); } 70% { transform: translate(1px, .5px); } }
+  .fx-numpop { transform-origin: 0 60%; animation: fxNumPop .55s cubic-bezier(.34, 1.56, .64, 1); }
+  @keyframes fxNumPop { 40% { transform: scale(1.4); color: var(--cl); text-shadow: 0 0 12px var(--c); } }
+
+  /* Log button: tinted circle with a plus; solid fill with a check when done.
+     1–4 habits show the level with an arc. */
+  .log-btn { position: relative; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    border: 1.5px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); color: var(--cl);
+    transition: background .25s, border-color .25s, box-shadow .25s; }
+  .streak-ring-btn .log-btn svg:not(.log-arc), .compact-ring-btn .log-btn svg:not(.log-arc) { width: 16px; height: 16px; overflow: visible; }
+  .log-btn b { font: 800 15px 'Inter', sans-serif; font-variant-numeric: tabular-nums; }
+  .log-btn.on { background: linear-gradient(135deg, var(--c), var(--cd)); border-color: transparent; color: #fff; box-shadow: 0 3px 14px color-mix(in srgb, var(--c) 55%, transparent), inset 0 1px 0 rgba(255,255,255,.25); }
+  .log-btn.scale:not(.on) { border-color: color-mix(in srgb, var(--c) 25%, transparent); }
+  .streak-ring-btn .log-btn .log-arc, .compact-ring-btn .log-btn .log-arc { position: absolute; inset: -1.5px; width: calc(100% + 3px); height: calc(100% + 3px); transform: rotate(-90deg); pointer-events: none; }
+  .log-arc circle { fill: none; stroke: var(--c); stroke-width: 2.6; stroke-linecap: round; }
+  .log-btn.sm { width: 30px; height: 30px; }
+  .compact-ring-btn .log-btn.sm svg:not(.log-arc) { width: 13px; height: 13px; }
+  .log-btn.sm b { font-size: 12px; }
+  #page-streaks .st-dead .log-btn:not(.on) { border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.04); color: rgba(255,255,255,.55); }
+  .fx-pop { animation: fxPop .45s cubic-bezier(.34, 1.56, .64, 1); }
+  @keyframes fxPop { 45% { transform: scale(1.18); } }
+
+  /* Log yesterday: card and compact */
+  .streak-yday-btn.done { opacity: 1; color: var(--c); border-color: color-mix(in srgb, var(--c) 40%, var(--border)); background: color-mix(in srgb, var(--c) 12%, var(--surface2)); }
+  .streak-yday-btn, .compact-yday-btn { position: relative; }
+  .yday-arc { position: absolute; left: -1px; top: -1px; pointer-events: none; overflow: visible; }
+  .yday-arc rect { fill: none; stroke: var(--c); stroke-width: 1; stroke-linecap: butt; }
+  #page-streaks .streak-yday-btn.done.scale, #page-streaks .compact-yday-btn.done.scale { border-color: rgba(255,255,255,.1); }
+  .compact-bot { display: flex; align-items: flex-end; gap: 7px; }
+  .compact-bot .compact-week { flex: 1; min-width: 0; }
+  .compact-yday-btn { width: 26px; height: 18px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim);
+    display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; cursor: pointer; transition: all .15s; }
+  /* centered under the log circle (whose tap area hangs past the chip edge) */
+  .compact-yday-btn { margin-right: 4px; }
+  .compact-yday-btn svg { width: 11px; height: 11px; }
+  .compact-yday-btn:active { transform: scale(.92); }
+  .compact-yday-btn.done { color: var(--c); border-color: color-mix(in srgb, var(--c) 40%, var(--border)); background: color-mix(in srgb, var(--c) 12%, var(--surface2)); }
+
+  /* Cards / Compact switch */
+  .view-seg { display: flex; gap: 2px; padding: 2px; background: var(--surface2); border: 1px solid var(--border-soft); border-radius: 10px; }
+  .view-seg button { display: flex; align-items: center; gap: 5px; border: none; background: none; color: var(--text-dim); font: 600 11.5px 'Inter', sans-serif; padding: 5px 9px; border-radius: 8px; cursor: pointer; }
+  .view-seg button svg { width: 12px; height: 12px; }
+  .view-seg button.on { background: var(--surface3); color: var(--text); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fire-run, .fire-run::after, .fire-run i, .fb, .fb svg, .fb-boom, .fx-pop, .fx-jolt, .fx-numpop, #page-streaks .streak-card, #page-streaks .compact-chip, .streak-card-main { animation: none !important; }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     CLEAR EFFECTS (Oct 2026)
+     Checklist: a checked item smolders; Clear makes it combust.
+     Bucket: a starred item twinkles; Finished sends shooting stars
+     and lifts the items onto the Done shelf. Particles are drawn on
+     #fx (see the FX block in the script).
+     ══════════════════════════════════════════════════════ */
+  #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2050; }
+
+  .lv-row.lv-smolder::before { content: ''; position: absolute; inset: 30% 0 0 0; pointer-events: none;
+    background: linear-gradient(0deg, rgba(255,90,30,.14), rgba(255,90,30,0)); animation: fxSmolder 2.3s ease-in-out infinite; }
+  .lv-row.lv-smolder .lv-txt { color: color-mix(in srgb, #ff8a4c 32%, var(--text-dim)); text-decoration-color: rgba(255,120,60,.5); }
+  .lv-row.lv-smolder .lv-chk { animation: fxHotChk 1.9s ease-in-out infinite; }
+  .lv-row.lv-smolder.lv-pop .lv-chk { animation: lvPop .35s cubic-bezier(.34,1.56,.64,1), fxHotChk 1.9s ease-in-out .35s infinite; }
+  @keyframes fxSmolder { 0%, 100% { opacity: .45; } 35% { opacity: 1; } 62% { opacity: .62; } 80% { opacity: .9; } }
+  @keyframes fxHotChk { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,140,50,0); } 50% { box-shadow: 0 0 11px 1px rgba(255,140,50,.55); } }
+
+  .lv-row.lv-flare::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(circle at 23px 50%, rgba(255,175,70,.5), rgba(255,100,40,.12) 45%, transparent 70%);
+    animation: fxFlare .6s ease-out forwards; }
+  @keyframes fxFlare { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
+
+  .lv-row.lv-igniting::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(0deg, rgba(255,110,40,.38), rgba(255,110,40,.04)); }
+  .lv-row.lv-igniting .lv-txt { color: #ffc27a; text-shadow: 0 0 9px rgba(255,140,50,.85); text-decoration-color: rgba(255,180,100,.8); }
+  .lv-row.lv-igniting .lv-chk { box-shadow: 0 0 14px 3px rgba(255,150,60,.8); }
+  .lv-row.lv-igniting > :not(.lv-blast) { animation: fxTremble .06s steps(2) infinite; }
+  @keyframes fxTremble { from { transform: translate(.8px, -.5px); } to { transform: translate(-.8px, .6px); } }
+  .lv-row.lv-boom { background: #1f1511; transition: background .25s; cursor: default; }
+  .lv-row.lv-boom > :not(.lv-blast) { animation: fxBlowout .16s ease-out forwards; }
+  @keyframes fxBlowout { to { transform: scale(1.08); opacity: 0; filter: brightness(2.2) blur(2px); } }
+  .lv-blast { position: absolute; z-index: 2; inset: -16px -8px; pointer-events: none; mix-blend-mode: screen;
+    background: radial-gradient(ellipse 58% 72% at 42% 50%, rgba(255,252,220,.97), rgba(255,175,65,.75) 32%, rgba(255,75,25,.32) 58%, rgba(255,60,20,0) 76%);
+    animation: fxBlast .44s ease-out forwards; }
+  @keyframes fxBlast { 0% { transform: scale(.3); opacity: 0; } 14% { opacity: 1; } 100% { transform: scale(1.25); opacity: 0; } }
+  .lv-group.lv-shake { animation: fxShake .24s ease-out; }
+  @keyframes fxShake { 20% { transform: translate(2px,-1px); } 40% { transform: translate(-2px,1.5px); } 60% { transform: translate(1.5px,1px); } 80% { transform: translate(-1px,-.5px); } }
+
+  .lv-row.lv-twinkle .lv-star svg { animation: fxGlint 2.6s ease-in-out infinite; }
+  @keyframes fxGlint { 0%, 100% { filter: drop-shadow(0 0 0 rgba(160,200,255,0)); transform: none; } 50% { filter: drop-shadow(0 0 6px rgba(160,200,255,.85)); transform: scale(1.08) rotate(9deg); } }
+  .lv-row.lv-rise > * { animation: fxRise .52s cubic-bezier(.3,.6,.2,1) forwards; }
+  @keyframes fxRise { 0% { transform: none; opacity: 1; } 35% { transform: translateY(-2px); opacity: 1; filter: drop-shadow(0 0 9px rgba(170,205,255,.9)); } 100% { transform: translateY(-16px); opacity: 0; filter: drop-shadow(0 0 2px rgba(170,205,255,.3)); } }
+  .lv-trophy.lv-new { animation: fxLand .55s cubic-bezier(.34,1.56,.64,1) both, fxLandGlow 1.4s ease-out both; }
+  @keyframes fxLand { 0% { transform: scale(.55) translateY(10px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  @keyframes fxLandGlow { 0%, 30% { box-shadow: 0 0 16px 2px rgba(150,195,255,.55); } 100% { box-shadow: 0 0 0 0 rgba(150,195,255,0); } }
+
+  .lv-row.lv-gone { height: 0 !important; min-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; overflow: hidden; border-top-color: transparent; }
+  .lv-clear-btn:disabled { opacity: .5; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lv-row::before, .lv-row::after, .lv-row .lv-chk, .lv-row .lv-star svg, .lv-row > *, .lv-trophy, .lv-group, .lv-blast { animation: none !important; }
+  }
 
   /* ══════════════════════════════════════════════════════
      SHEETS (Oct 2026) — every popup shares this look.
@@ -1606,11 +1818,11 @@
   .mc-toggle { margin-bottom: 12px; }
   .mc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
   .mc-dow { font-size: 9.5px; font-weight: 700; color: var(--text-dim); text-align: center; padding-bottom: 1px; }
-  .mc-cell { position: relative; aspect-ratio: 1; border-radius: 9px; background: var(--surface2); border: none; padding: 0;
+  .mc-cell { position: relative; aspect-ratio: 1; border-radius: 9px; background: rgba(0,0,0,.3); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); border: none; padding: 0;
              display: flex; align-items: center; justify-content: center; font: 600 11.5px 'Inter', sans-serif; color: var(--text-muted);
              font-variant-numeric: tabular-nums; }
-  .mc-pad { background: none; }
-  .mc-cell.on { color: #fff; }
+  .mc-pad { background: none; box-shadow: none; }
+  .mc-cell.on { color: #fff; box-shadow: none; }
   .mc-cell.future { opacity: .3; }
   .mc-cell.before { background: transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); color: var(--text-dim); }
   .mc-cell.req { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 60%, transparent); }
@@ -1736,7 +1948,7 @@
 
     <div class="settings-section-title">About</div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.5;padding:0 4px 4px">
-      Streaks · v2.1<br>
+      Streaks · v2.3<br>
       Private, offline-first habit & goal tracker
     </div>
 
@@ -1890,6 +2102,7 @@ function switchTab(tab, fromSwipe = false) {
   lvOpen = null;
   habitPageId = null;
   lvGoalsEditing = false;
+  if (tab === 'streaks') streaksEnter = true;
   const fromIdx = tabOrder.indexOf(currentTab);
   const toIdx = tabOrder.indexOf(tab);
   const dir = toIdx > fromIdx ? 1 : -1;
@@ -2098,12 +2311,13 @@ function renderGoalTab(tab) {
   if (lvAnim) { void page.offsetWidth; page.classList.add(lvAnim === 'in' ? 'lv-page-in' : 'lv-page-back'); lvAnim = null; }
   lvPopId = null;
   lvAttachDrags(page, tab);
+  fxAfterRender(page);
 }
 
 function lvRowHtml(tab, e, sec, it, opts = {}) {
   const bucket = tab === 'bucket', checkable = sec.type !== 'goals';
   const due = checkable && !bucket && it.deadline && !it.checked ? lvDue(it.deadline) : null;
-  const state = !checkable ? 'lv-nocheck' : it.checked ? (bucket ? 'lv-starred' : 'lv-done') : '';
+  const state = !checkable ? 'lv-nocheck' : it.checked ? (bucket ? 'lv-starred lv-twinkle' : 'lv-done lv-smolder') : '';
   const mark = !checkable ? '' : bucket ? `<span class="lv-star">${LV_STAR}</span>` : `<span class="lv-chk">${LV_CHECK}</span>`;
   return `<div class="lv-row ${state} ${lvPopId === it.id ? 'lv-pop' : ''}" style="${lvVars(e)}" data-lvid="${it.id}"${opts.nodrag ? '' : ' data-drag="1"'}${checkable ? ` onclick="lvToggle('${tab}','${it.id}')"` : ''}>
     ${mark}<div class="lv-txt">${escHtml(it.text)}${opts.tag ? `<div class="lv-tag"><i></i>${escHtml(e.name)}</div>` : ''}</div>
@@ -2157,7 +2371,7 @@ function lvHomeHtml(tab) {
     h += shelf.length
       ? `<div class="lv-shelf">${shelf.map(({ e, it }) => {
           const when = it.doneOn ? `${LV_MON[lvParse(it.doneOn).getMonth()]} ${lvParse(it.doneOn).getFullYear()}` : '';
-          return `<div class="lv-trophy" style="${lvVars(e)}" onclick="lvShelfMenu('${it.id}')">${LV_STAR}<div style="min-width:0"><div class="lv-tr-txt">${escHtml(it.text)}</div>${when ? `<div class="lv-tr-when">${when}</div>` : ''}</div></div>`;
+          return `<div class="lv-trophy${lvFreshShelf && lvFreshShelf.has(it.id) ? ' lv-new' : ''}" style="${lvVars(e)}" onclick="lvShelfMenu('${it.id}')">${LV_STAR}<div style="min-width:0"><div class="lv-tr-txt">${escHtml(it.text)}</div>${when ? `<div class="lv-tr-when">${when}</div>` : ''}</div></div>`;
         }).join('')}</div>`
       : `<div class="lv-shelf-empty">Star something and press Finished to start your shelf.</div>`;
     h += `</div>`;
@@ -2301,6 +2515,391 @@ function lvApplyReorder(ctx, insertBefore) {
   render();
 }
 
+/* ══ FX — particles for the clear effects (Oct 2026) ═══════
+   One fixed canvas (#fx) above everything, Streaky included. The loop
+   runs only while there are particles, or while a checked/starred row
+   is on screen (those give off a few embers or sparkles). It skips that
+   ambient effect while a sheet or Streaky is open. Reduce Motion turns
+   all of it off: rows just fade.
+   Note on the loop: rAF's timestamp can be a hair earlier than the
+   performance.now() taken in fxKick(). That used to make dt negative,
+   which made a radius negative, which threw and killed the loop for good.
+   dt is clamped and the frame is wrapped in try/catch for that reason. */
+const fxCanvas = document.createElement('canvas');
+fxCanvas.id = 'fx';
+fxCanvas.setAttribute('aria-hidden', 'true');
+document.body.appendChild(fxCanvas);
+const fxCtx = fxCanvas.getContext('2d');
+const fxParts = [];
+const fxMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+let fxW = 0, fxH = 0, fxRunning = false, fxLast = 0;
+
+const fxReduced = () => !!(fxMotionQuery && fxMotionQuery.matches);
+const fxRand = (a, b) => a + Math.random() * (b - a);
+
+function fxSize() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  fxW = window.innerWidth; fxH = window.innerHeight;
+  fxCanvas.width = fxW * dpr; fxCanvas.height = fxH * dpr;
+  fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+fxSize();
+window.addEventListener('resize', fxSize);
+document.addEventListener('visibilitychange', () => fxKick());
+
+const FX_HEAT = [[0, [110, 28, 16]], [.4, [255, 96, 40]], [.7, [255, 184, 64]], [1, [255, 245, 195]]];
+function fxHeat(h, stops) {
+  const st = stops || FX_HEAT;
+  for (let i = 1; i < st.length; i++) {
+    if (h <= st[i][0]) {
+      const [a, ca] = st[i - 1], [b, cb] = st[i], k = (h - a) / (b - a);
+      return ca.map((v, j) => Math.round(v + (cb[j] - v) * k)).join(',');
+    }
+  }
+  return st[st.length - 1][1].join(',');
+}
+/* Ember colors for a habit: dark → habit color → light → white-hot. */
+const fxStopsCache = new Map();
+function fxStops(hex) {
+  hex = (hex || '').trim();
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return FX_HEAT;
+  if (!fxStopsCache.has(hex)) {
+    const n = parseInt(hex.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    fxStopsCache.set(hex, [[0, c.map(v => v * .35)], [.45, c], [.78, c.map(v => v + (255 - v) * .5)], [1, [255, 252, 240]]]);
+  }
+  return fxStopsCache.get(hex);
+}
+const fxStopsOf = el => fxStops(getComputedStyle(el).getPropertyValue('--c'));
+
+function fxEmber(x, y, o) {
+  fxParts.push(Object.assign({ t: 'ember', x, y, vx: fxRand(-25, 25), vy: fxRand(-95, -30), g: -18, drag: .985, life: 0, max: fxRand(.5, 1.05), s: fxRand(.9, 2), h0: fxRand(.8, 1) }, o || {}));
+}
+function fxCrumb(x, y) {   // what's left behind: slower, cooler, falling
+  fxParts.push({ t: 'ember', x, y, vx: fxRand(-12, 12), vy: fxRand(-18, 6), g: 46, drag: .99, life: 0, max: fxRand(.9, 1.5), s: fxRand(.8, 1.5), h0: fxRand(.45, .7) });
+}
+function fxFlame(x, y, stops) {
+  fxParts.push({ t: 'flame', x, y, stops, vx: fxRand(-45, 45), vy: fxRand(-160, -50), g: -40, drag: .96, life: 0, max: fxRand(.35, .6), s: fxRand(10, 19) });
+}
+function fxSmoke(x, y, o) {
+  fxParts.push(Object.assign({ t: 'smoke', x, y, vx: fxRand(-22, 22), vy: fxRand(-34, -10), g: 0, drag: .98, life: 0, max: fxRand(.9, 1.3), s: fxRand(11, 20), col: '58,52,56', a: .3 }, o || {}));
+}
+function fxAsh(x, y) {
+  fxParts.push({ t: 'ash', x, y, vx: fxRand(-10, 10), vy: fxRand(4, 26), g: 38, drag: .99, life: 0, max: fxRand(.6, 1.1), s: fxRand(.9, 1.7) });
+}
+function fxSpark(x, y, o) {
+  fxParts.push(Object.assign({ t: 'spark', x, y, vx: 0, vy: 0, g: 0, drag: .94, life: 0, max: fxRand(.45, .75), s: fxRand(3, 5.5), rot: fxRand(0, .8), col: '220,234,255' }, o || {}));
+}
+function fxShootingStar() {
+  const ang = fxRand(17, 30) * Math.PI / 180, sp = fxRand(980, 1260);
+  fxParts.push({ t: 'shoot', x: fxRand(-90, fxW * .35), y: fxRand(fxH * .06, fxH * .42), vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 0, drag: 1, life: 0, max: fxRand(.8, .98), trail: [] });
+  fxKick();
+}
+
+function fxTick(dt) {
+  for (let i = fxParts.length - 1; i >= 0; i--) {
+    const p = fxParts[i];
+    p.life += dt;
+    if (p.life >= p.max) { fxParts.splice(i, 1); continue; }
+    if (p.t === 'shoot') {
+      p.trail.push([p.x, p.y]);
+      if (p.trail.length > 14) p.trail.shift();
+      if (Math.random() < .45) fxSpark(p.x - p.vx * .02, p.y - p.vy * .02, { s: fxRand(1.5, 2.6), max: fxRand(.3, .55), vx: fxRand(-15, 15), vy: fxRand(10, 40) });
+    }
+    const d = Math.pow(p.drag, dt * 60);
+    p.vx *= d; p.vy = p.vy * d + p.g * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+  }
+}
+function fxCirc(x, y, r) { fxCtx.beginPath(); fxCtx.arc(x, y, Math.max(0, r), 0, Math.PI * 2); fxCtx.fill(); }
+function fxGlow(x, y, r, rgb, a) {
+  r = Math.max(.01, r);
+  const g = fxCtx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(1, `rgba(${rgb},0)`);
+  fxCtx.globalAlpha = 1; fxCtx.fillStyle = g; fxCirc(x, y, r);
+}
+function fxDraw() {
+  const ctx = fxCtx;
+  ctx.clearRect(0, 0, fxW, fxH);
+  for (const p of fxParts) {
+    const k = p.life / p.max;
+    if (p.t === 'ember') {
+      ctx.globalCompositeOperation = 'lighter';
+      const a = Math.min(1, k / .12) * (1 - k), flick = .75 + .25 * Math.sin(p.life * 40 + p.x);
+      const hc = fxHeat((1 - k) * p.h0, p.stops);
+      fxGlow(p.x, p.y, p.s * 4, hc, a * .35 * flick);
+      ctx.fillStyle = `rgb(${hc})`; ctx.globalAlpha = a * flick; fxCirc(p.x, p.y, p.s);
+    } else if (p.t === 'flame') {
+      ctx.globalCompositeOperation = 'lighter';
+      const r = Math.max(.01, p.s * (1 - .55 * k) * Math.min(1, k / .12 + .3)), a = Math.min(1, k / .1) * (1 - k);
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      g.addColorStop(0, `rgba(${fxHeat(1 - k * .8, p.stops)},${a * .9})`);
+      g.addColorStop(.45, p.stops ? `rgba(${fxHeat(.45, p.stops)},${a * .45})` : `rgba(255,100,35,${a * .45})`);
+      g.addColorStop(1, p.stops ? `rgba(${fxHeat(.3, p.stops)},0)` : 'rgba(255,60,20,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; fxCirc(p.x, p.y, r);
+    } else if (p.t === 'smoke') {
+      ctx.globalCompositeOperation = 'source-over';
+      fxGlow(p.x, p.y, p.s * (1 + k * 1.6), p.col || '58,52,56', (p.a || .3) * Math.sin(Math.PI * k));
+    } else if (p.t === 'ash') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = (1 - k) * .75; ctx.fillStyle = 'rgb(72,66,70)'; fxCirc(p.x, p.y, p.s);
+    } else if (p.t === 'spark') {
+      ctx.globalCompositeOperation = 'lighter';
+      const g = Math.sin(Math.PI * k), sz = p.s * g;
+      fxGlow(p.x, p.y, sz * 2.2, p.col, g * .3);
+      ctx.fillStyle = `rgb(${p.col})`; ctx.globalAlpha = g;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.beginPath(); ctx.moveTo(0, -sz);
+      ctx.quadraticCurveTo(0, 0, sz, 0); ctx.quadraticCurveTo(0, 0, 0, sz);
+      ctx.quadraticCurveTo(0, 0, -sz, 0); ctx.quadraticCurveTo(0, 0, 0, -sz);
+      ctx.fill(); ctx.restore();
+    } else if (p.t === 'shoot') {
+      ctx.globalCompositeOperation = 'lighter';
+      const fade = p.life > p.max - .25 ? (p.max - p.life) / .25 : Math.min(1, p.life / .08);
+      const tr = p.trail.concat([[p.x, p.y]]);
+      ctx.lineCap = 'round'; ctx.strokeStyle = 'rgb(190,218,255)';
+      for (let i = 1; i < tr.length; i++) {
+        const f = i / tr.length;
+        ctx.globalAlpha = f * f * fade; ctx.lineWidth = .4 + 2.6 * f;
+        ctx.beginPath(); ctx.moveTo(tr[i - 1][0], tr[i - 1][1]); ctx.lineTo(tr[i][0], tr[i][1]); ctx.stroke();
+      }
+      fxGlow(p.x, p.y, 12, '150,195,255', .55 * fade);
+      ctx.fillStyle = '#fff'; ctx.globalAlpha = fade; fxCirc(p.x, p.y, 2.2);
+    }
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+
+function fxQuiet() {   // nothing ambient while something covers the lists
+  return fxReduced() || document.hidden || streakyOpen || !!document.querySelector('.modal-overlay.open');
+}
+function fxAmbient(dt) {
+  if (fxQuiet()) return;
+  document.querySelectorAll('.page.active .lv-row.lv-smolder').forEach(el => {
+    if (Math.random() > dt * 1.8) return;
+    const r = el.getBoundingClientRect();
+    if (!r.width || r.bottom < 0 || r.top > fxH) return;
+    fxEmber(r.left + fxRand(14, r.width * .8), r.bottom - fxRand(3, 12), { vx: fxRand(-8, 8), vy: fxRand(-40, -14), g: -6, max: fxRand(.6, 1.2), s: fxRand(.7, 1.3), h0: fxRand(.65, .9) });
+  });
+  document.querySelectorAll('.page.active .lv-row.lv-twinkle .lv-star').forEach(st => {
+    if (Math.random() > dt * 1.1) return;
+    const r = st.getBoundingClientRect();
+    if (!r.width || r.bottom < 0 || r.top > fxH) return;
+    fxSpark(r.left + r.width / 2 + fxRand(-16, 16), r.top + r.height / 2 + fxRand(-12, 12), { s: fxRand(2.4, 3.8), max: fxRand(.5, .8) });
+  });
+  // Streaks: embers off the compact fire bands and burning flame squares, smoke off dead ones.
+  document.querySelectorAll('.page.active .fr-full').forEach(run => {
+    const r = run.getBoundingClientRect();
+    if (!r.width || r.bottom < 0 || r.top > fxH) return;
+    const hot = run.classList.contains('fr-blaze');
+    if (Math.random() > dt * (hot ? 1.5 : .45) * Math.max(1, r.width / 40)) return;
+    fxEmber(r.left + fxRand(2, r.width - 2), r.top + 1, { stops: fxStopsOf(run), vx: fxRand(-8, 8), vy: fxRand(-45, -15), g: -6, max: fxRand(.5, 1), s: fxRand(.6, 1.2), h0: hot ? fxRand(.8, 1) : fxRand(.55, .8) });
+  });
+  document.querySelectorAll('.page.active .fb-blaze').forEach(f => {
+    if (Math.random() > dt * 1.1) return;
+    const r = f.getBoundingClientRect();
+    if (!r.width || r.bottom < 0 || r.top > fxH) return;
+    fxEmber(r.left + r.width / 2 + fxRand(-8, 8), r.top + 6, { stops: fxStopsOf(f), vy: fxRand(-55, -25), max: fxRand(.4, .8), s: fxRand(.7, 1.3) });
+  });
+  document.querySelectorAll('.page.active .fb-dead').forEach(f => {
+    if (Math.random() > dt * .7) return;
+    const r = f.getBoundingClientRect();
+    if (!r.width || r.bottom < 0 || r.top > fxH) return;
+    fxSmoke(r.left + r.width / 2 + fxRand(-3, 3), r.top + r.height * .35, { s: fxRand(3, 5), vy: fxRand(-16, -8), vx: fxRand(-4, 4), max: fxRand(1.3, 2), col: '120,114,124', a: .2 });
+  });
+}
+const FX_AMBIENT_SEL = '.page.active .lv-row.lv-smolder, .page.active .lv-row.lv-twinkle, .page.active .fr-full, .page.active .fb-blaze, .page.active .fb-dead';
+const fxNeedsAmbient = () => !fxQuiet() && !!document.querySelector(FX_AMBIENT_SEL);
+
+function fxKick() {
+  if (fxRunning || (!fxParts.length && !fxNeedsAmbient())) return;
+  fxRunning = true; fxLast = performance.now();
+  requestAnimationFrame(fxLoop);
+}
+function fxLoop(t) {
+  const dt = Math.max(0, Math.min(.05, (t - fxLast) / 1000));
+  fxLast = Math.max(fxLast, t);
+  try { fxAmbient(dt); fxTick(dt); fxDraw(); }
+  catch (err) { fxParts.length = 0; fxCtx.clearRect(0, 0, fxW, fxH); }
+  if (fxParts.length || fxNeedsAmbient()) requestAnimationFrame(fxLoop);
+  else { fxRunning = false; fxCtx.clearRect(0, 0, fxW, fxH); }
+}
+
+/* Called after every list render: shelf chips that just landed get a sparkle. */
+function fxAfterRender(page) {
+  if (!fxReduced()) {
+    page.querySelectorAll('.lv-trophy.lv-new').forEach((t, i) => setTimeout(() => {
+      const r = t.getBoundingClientRect();
+      if (!r.width) return;
+      for (let k = 0; k < 6; k++) fxSpark(r.left + fxRand(0, r.width), r.top + fxRand(0, r.height), { s: fxRand(2.5, 4.5) });
+      fxKick();
+    }, 120 + i * 80));
+  }
+  fxKick();
+}
+
+/* Checking an item: a flare from the circle (lists and Streaky's rows). */
+function fxFlare(box) {
+  if (!box || fxReduced()) return;
+  const c = box.getBoundingClientRect(), cx = c.left + c.width / 2, cy = c.top + c.height / 2;
+  for (let i = 0; i < 14; i++) fxEmber(cx + fxRand(-4, 4), cy + fxRand(-4, 4), { vx: fxRand(-60, 60), vy: fxRand(-170, -50), max: fxRand(.4, .8), s: fxRand(1, 2) });
+  fxKick();
+}
+function fxFlareRow(row) {
+  row.classList.add('lv-flare');
+  setTimeout(() => row.classList.remove('lv-flare'), 650);
+  fxFlare(row.querySelector('.lv-chk'));
+}
+/* Starring an item: a ring of sparkles. */
+function fxStarBurst(row) {
+  if (fxReduced()) return;
+  const st = row.querySelector('.lv-star'); if (!st) return;
+  const r = st.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + fxRand(-.2, .2), d = fxRand(10, 18);
+    fxSpark(cx + Math.cos(a) * d, cy + Math.sin(a) * d, { vx: Math.cos(a) * fxRand(40, 90), vy: Math.sin(a) * fxRand(40, 90), s: fxRand(3, 5.5), max: fxRand(.4, .65) });
+  }
+  fxKick();
+}
+
+function fxCollapse(el, cb) {
+  el.style.height = el.offsetHeight + 'px';
+  el.style.transition = 'height .22s ease, padding .22s ease, opacity .22s ease';
+  void el.offsetHeight;
+  el.classList.add('lv-gone');
+  setTimeout(() => { if (cb) cb(); }, 240);
+}
+
+/* Clear on Checklist: each row heats up, then combusts. Rows go off ~150ms apart. */
+function fxIgniteRows(rows, done) {
+  rows.forEach((el, i) => setTimeout(() => fxIgnite(el, i === rows.length - 1 ? done : null), i * 150));
+}
+function fxIgnite(el, cb) {
+  el.classList.remove('lv-smolder', 'lv-flare', 'lv-pop');
+  if (fxReduced()) {
+    el.style.transition = 'opacity .25s'; el.style.opacity = '0';
+    setTimeout(() => fxCollapse(el, cb), 260);
+    return;
+  }
+  el.classList.add('lv-igniting');
+  const heat = setInterval(() => {   // a few sparks while it heats up
+    const r = el.getBoundingClientRect();
+    for (let k = 0; k < 2; k++) fxEmber(r.left + fxRand(14, r.width * .8), r.top + fxRand(8, r.height - 4), { vy: fxRand(-90, -40), max: fxRand(.3, .5), s: fxRand(.8, 1.4) });
+    fxKick();
+  }, 45);
+  setTimeout(() => {
+    clearInterval(heat);
+    el.classList.remove('lv-igniting');
+    el.classList.add('lv-boom');
+    const blast = document.createElement('div'); blast.className = 'lv-blast'; el.appendChild(blast);
+    const grp = el.closest('.lv-group');
+    if (grp) { grp.classList.remove('lv-shake'); void grp.offsetWidth; grp.classList.add('lv-shake'); }
+    const r = el.getBoundingClientRect(), cy = r.top + r.height / 2, span = Math.min(r.width * .85, 300);
+    for (let k = 0; k < 11; k++) fxFlame(r.left + fxRand(10, span), cy + fxRand(-6, 6));
+    for (let k = 0; k < 28; k++) {
+      const ang = fxRand(-Math.PI * .95, -Math.PI * .05) + (Math.random() < .25 ? Math.PI : 0), sp = fxRand(120, 340);
+      fxEmber(r.left + fxRand(10, span), cy + fxRand(-8, 8), { vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 280, drag: .95, max: fxRand(.6, 1.1), s: fxRand(1, 2.4), h0: fxRand(.85, 1) });
+    }
+    for (let k = 0; k < 6; k++) fxSmoke(r.left + fxRand(20, span), cy + fxRand(-4, 4));
+    setTimeout(() => {
+      const r2 = el.getBoundingClientRect();
+      for (let k = 0; k < 10; k++) fxCrumb(r2.left + fxRand(10, span), r2.top + fxRand(4, r2.height));
+      for (let k = 0; k < 8; k++) fxAsh(r2.left + fxRand(10, span), r2.top + fxRand(4, r2.height));
+      fxKick();
+    }, 120);
+    fxKick();
+    setTimeout(() => fxCollapse(el, cb), 380);
+  }, 210);
+}
+
+/* Finished on Bucket: shooting stars, rows lift off with a sparkle. */
+function fxFinishRows(rows, done) {
+  if (!fxReduced()) [0, 150, 320].forEach(d => setTimeout(fxShootingStar, d));
+  rows.forEach((el, i) => setTimeout(() => {
+    el.classList.remove('lv-twinkle', 'lv-pop');
+    if (fxReduced()) {
+      el.style.transition = 'opacity .25s'; el.style.opacity = '0';
+      setTimeout(() => fxCollapse(el, i === rows.length - 1 ? done : null), 260);
+      return;
+    }
+    el.classList.add('lv-rise');
+    const r = el.getBoundingClientRect();
+    for (let k = 0; k < 7; k++) fxSpark(r.left + fxRand(14, r.width * .8), r.top + fxRand(6, r.height - 6), { vy: fxRand(-50, -15), s: fxRand(2.5, 4.5) });
+    fxKick();
+    setTimeout(() => fxCollapse(el, i === rows.length - 1 ? done : null), 520);
+  }, i * 90));
+}
+
+/* Streaks: after logging a day. Combusts in the habit's color (harder each
+   level on 1–4 habits), brings an "out" habit back to life, or puts the day
+   out with smoke when a log is undone. */
+function fxRestart(el, cls, ms) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(() => el.classList.remove(cls), ms); }
+const fxCenter = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r]; };
+function fxHabitLogged(habit, ds, which, prev, next, before) {
+  const el = document.querySelector(`#page-streaks [data-habit-id="${habit.id}"]`);
+  if (!el) return;
+  const after = streakFire(habit);
+  if (before.state === 'dead' && after.state !== 'dead') fxRestart(el, 'fx-revive', 820);
+  if (before.state !== 'dead' && after.state === 'dead') fxRestart(el, 'fx-die', 820);
+  const btn = el.querySelector(which === 'yday' ? '.streak-yday-btn, .compact-yday-btn' : '.log-btn');
+  if (next) fxRestart(btn, 'fx-pop', 460);
+  if (fxReduced()) return;
+  const stops = fxStops(habitColor(habit));
+  const cell = [...el.querySelectorAll('[data-d]')].find(c => c.dataset.d === ds && c.offsetWidth);
+
+  if (!next) {   // undone: smoke and ash where the day was, more if a 4 went back to 0
+    const big = habit.type === 'gradient' && prev === 4;
+    if (cell) { const [x, y] = fxCenter(cell); for (let k = 0; k < 5; k++) fxSmoke(x + fxRand(-4, 4), y, { s: fxRand(4, 7) }); for (let k = 0; k < 5; k++) fxAsh(x + fxRand(-5, 5), y); }
+    if (big || after.state === 'dead') {
+      const [fx, fy] = fxCenter(el.querySelector('.fb'));
+      for (let k = 0; k < (big ? 9 : 5); k++) fxSmoke(fx + fxRand(-8, 8), fy + fxRand(-4, 4), { s: fxRand(7, 12), vy: fxRand(-40, -12) });
+      if (big) for (let k = 0; k < 8; k++) fxAsh(fx + fxRand(-8, 8), fy);
+    }
+    fxKick();
+    return;
+  }
+
+  // How hard it goes off
+  const weekly = before.freq !== 'daily';
+  const finishedWeek = weekly && before.state !== 'blaze' && after.state === 'blaze';
+  let power, surge, jolt, sweep;
+  if (habit.type === 'gradient' && !weekly) { power = .35 + next * .2; surge = next >= 2 && before.state !== 'dead'; jolt = next >= 3; sweep = prev === 0 ? 'grow' : null; }
+  else if (weekly) { power = finishedWeek ? 1 : .45; surge = finishedWeek; jolt = finishedWeek; sweep = finishedWeek ? 'fill' : null; }
+  else if (before.state !== 'dead') { power = 1; surge = true; jolt = true; sweep = 'grow'; }
+  else { power = .65; surge = false; jolt = false; sweep = 'grow'; }
+
+  el.querySelectorAll('.fire-run:not(.fr-inplay)').forEach((run, i) => {
+    const vertical = run.parentElement.dataset.fireDir === 'col';
+    if (!vertical && ds >= run.dataset.from && ds <= run.dataset.to) {
+      if (sweep === 'fill') run.animate([{ clipPath: 'inset(-20px 100% -8px 0%)' }, { clipPath: 'inset(-20px 0% -8px 0%)' }], { duration: 480, easing: 'ease-out' });
+      else if (sweep === 'grow') {
+        const n = +run.dataset.n || 1;
+        const right = n === 1 ? 50 : ds === run.dataset.to ? 100 / n : 0;
+        const left = n === 1 ? 50 : ds === run.dataset.from ? 100 / n : 0;
+        run.animate([{ clipPath: `inset(-20px ${right}% -8px ${left}%)` }, { clipPath: 'inset(-20px 0% -8px 0%)' }], { duration: 380, easing: 'ease-out' });
+      }
+    }
+    if (surge) setTimeout(() => fxRestart(run, 'fr-surge', 800), i * 60);
+  });
+  if (cell) { const [x, y] = fxCenter(cell); for (let k = 0; k < Math.round(10 * power); k++) fxEmber(x + fxRand(-4, 4), y, { stops, vx: fxRand(-50, 50), vy: fxRand(-140, -40), max: fxRand(.4, .8) }); }
+  if (btn) { const [bx, by] = fxCenter(btn); for (let k = 0; k < Math.round(10 * power); k++) fxEmber(bx + fxRand(-6, 6), by + fxRand(-6, 6), { stops, vx: fxRand(-70, 70), vy: fxRand(-150, -40), max: fxRand(.4, .75) }); }
+  setTimeout(() => {
+    const f = el.querySelector('.fb'); if (!f || !f.isConnected) return;
+    const [fx, fy] = fxCenter(f);
+    const boom = document.createElement('div'); boom.className = 'fb-boom'; boom.style.opacity = Math.min(1, .45 + power * .5);
+    f.appendChild(boom); setTimeout(() => boom.remove(), 520);
+    for (let k = 0; k < Math.round(10 * power); k++) fxFlame(fx + fxRand(-8, 8), fy + fxRand(-6, 6), stops);
+    for (let k = 0; k < Math.round(26 * power); k++) {
+      const ang = fxRand(-Math.PI * .95, -Math.PI * .05) + (Math.random() < .25 ? Math.PI : 0), sp = fxRand(110, 300) * (.7 + power * .3);
+      fxEmber(fx, fy, { stops, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, g: 260, drag: .95, max: fxRand(.55, 1), s: fxRand(1, 2.2) });
+    }
+    for (let k = 0; k < Math.round(3 * power); k++) fxSmoke(fx + fxRand(-6, 6), fy - 6, { s: fxRand(8, 14) });
+    fxRestart(el.querySelector('.streak-big-number, .compact-sub'), 'fx-numpop', 560);
+    if (jolt) fxRestart(el, 'fx-jolt', 320);
+    fxKick();
+  }, surge ? 220 : 120);
+  fxKick();
+}
+
 /* ══ NAVIGATION ════════════════════════════════════════ */
 function lvOpenList(tab, id) {
   if (dragState) return;
@@ -2324,21 +2923,41 @@ function lvToggleGoalsEdit() { lvGoalsEditing = !lvGoalsEditing; render(); }
 
 /* ══ ITEMS ═════════════════════════════════════════════ */
 function lvToggle(tab, itemId) {
-  if (dragState) return;
+  if (dragState || lvClearing) return;
   const f = lvFindItem(tab, itemId); if (!f) return;
   f.item.checked = !f.item.checked;
   if (tab === 'bucket') { if (f.item.checked) f.item.doneOn = todayStr(); else delete f.item.doneOn; }
   lvPopId = f.item.checked ? itemId : null;
   saveData(data);
   render();
+  if (f.item.checked) {
+    const row = document.querySelector(`#page-${tab} .lv-row[data-lvid="${itemId}"]`);
+    if (row) { if (tab === 'bucket') fxStarBurst(row); else fxFlareRow(row); }
+  }
 }
 
+/* Clear plays its effect on the rows first (combustion on Checklist,
+   shooting stars on Bucket), then changes the data and re-renders. */
+let lvClearing = false;
+let lvFreshShelf = null;   // ids just moved to the Done shelf, so their chips pop in
 function lvClear(tab, secId) {
-  const f = lvFind(tab, secId); if (!f) return;
+  if (lvClearing || !lvFind(tab, secId)) return;
+  const group = document.querySelector(`#page-${tab} .lv-group[data-sec="${secId}"]`);
+  const rows = group ? [...group.querySelectorAll(`:scope > .lv-row.${tab === 'bucket' ? 'lv-starred' : 'lv-done'}`)] : [];
+  if (!rows.length) { lvApplyClear(tab, secId); return; }
+  lvClearing = true;
+  const btn = group.querySelector('.lv-clear-btn'); if (btn) btn.disabled = true;
+  const done = () => { lvClearing = false; lvApplyClear(tab, secId); };
+  if (tab === 'bucket') fxFinishRows(rows, done); else fxIgniteRows(rows, done);
+}
+function lvApplyClear(tab, secId) {
+  const f = lvFind(tab, secId); if (!f) { render(); return; }
   if (tab === 'bucket') {
     const moved = f.sec.items.filter(i => i.checked && !i.shelved);
     moved.forEach(i => { i.shelved = true; if (!i.doneOn) i.doneOn = todayStr(); });
+    lvFreshShelf = new Set(moved.map(i => i.id));
     saveData(data); render();
+    lvFreshShelf = null;
     lvToast(`Moved ${moved.length} to your Done shelf`, () => moved.forEach(i => { delete i.shelved; }));
   } else {
     const before = f.sec.items.slice();
@@ -2518,7 +3137,6 @@ function lvItemMenu(tab, itemId) {
   if (dragState) return;
   const f = lvFindItem(tab, itemId); if (!f) return;
   const btns = [{ label: 'Edit', icon: 'edit', fn: () => lvEditItem(tab, itemId, false) }];
-  if (tab === 'checklist' && f.sec.type !== 'goals') btns.push({ label: f.item.deadline ? 'Change due date' : 'Add due date', icon: 'calendar', fn: () => lvEditItem(tab, itemId, true) });
   btns.push({ label: 'Delete', icon: 'trash', danger: true, fn: () => {
     const g = lvFindItem(tab, itemId); if (!g) return;
     const idx = g.sec.items.indexOf(g.item);
@@ -3273,31 +3891,6 @@ function statsEndDate(habit, hs, today) {
   return hs.has(dateStr(today)) ? new Date(today) : addDays(today, -1);
 }
 
-/* Flame state:
-     'bright' — this period's requirement is met (locked for the rest of the week)
-     'dim'    — logged today, but the week's requirement isn't met yet
-     'off'    — nothing logged today and requirement unmet
-   Gradient habits are treated as binary here: the flame tracks whether the day
-   was completed, not how well. */
-function habitFlameState(habit) {
-  const freq = habit.frequency || 'daily';
-  if (freq === 'daily') return isHabitDoneToday(habit) ? 'bright' : 'off';
-  if (isWeekComplete(habit, getWeekSunday(new Date()))) return 'bright';
-  return isHabitDoneToday(habit) ? 'dim' : 'off';
-}
-
-function flameBoxStyle(state, col) {
-  if (state === 'bright') return `background:linear-gradient(135deg, ${col}, ${darkenHex(col, 35)});box-shadow:0 4px 14px ${col}66`;
-  if (state === 'dim') return `background:${col}24;box-shadow:inset 0 0 0 1.5px ${col}59`;
-  return 'background:var(--surface2)';
-}
-
-function flameFill(state, col) {
-  if (state === 'bright') return '#fff';
-  if (state === 'dim') return col;
-  return 'rgba(255,255,255,0.2)';
-}
-
 function flameSvg(fill, size) {
   return `<svg viewBox="0 0 24 24" fill="${fill}" stroke="none" xmlns="http://www.w3.org/2000/svg" style="width:${size}px;height:${size}px">
       <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
@@ -3535,30 +4128,179 @@ function getTotalCompletions(habit) {
 /* ─────────────────────────────────────────────────────
    STREAKS — RENDER
    ───────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────
+   STREAK FIRE (Oct 2026)
+   streakFire(habit) says which days (daily) or weeks (weekly/custom)
+   belong to the current streak, and what state the habit is in:
+     'blaze'   — logged today (weekly: this week's target is met)
+     'smolder' — streak alive, today not logged yet (weekly: streak alive,
+                 or something logged this week)
+     'dead'    — no streak
+   Grids mark each streak cell with fireAttrs(); fireDecorate() measures
+   those cells and lays the bars: faint behind cards / calendars / the
+   4-month grid, full fire over the compact week strip. A weekly habit's
+   current week before its target gets a dashed outline ('inplay').
+   ───────────────────────────────────────────────────── */
+function streakFire(habit) {
+  const freq = habit.frequency || 'daily';
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const tds = dateStr(today);
+  const days = new Set(), weeks = new Set();
+  if (freq === 'daily') {
+    let cur = habitLevel(habit, tds) > 0 ? new Date(today)
+      : habitLevel(habit, dateStr(addDays(today, -1))) > 0 ? addDays(today, -1) : null;
+    while (cur && habitLevel(habit, dateStr(cur)) > 0) { days.add(dateStr(cur)); cur = addDays(cur, -1); }
+    const state = habitLevel(habit, tds) > 0 ? 'blaze' : days.size ? 'smolder' : 'dead';
+    return { freq, state, days, weeks, curWeek: null, inPlay: false };
+  }
+  const thisWS = getWeekSunday(today);
+  const curDone = isWeekComplete(habit, thisWS);
+  if (curDone) weeks.add(dateStr(thisWS));
+  const created = habit.created ? new Date(habit.created + 'T00:00:00') : null;
+  for (let w = 1; w <= 520; w++) {
+    const ws = addDays(thisWS, -7 * w);
+    if (created && addDays(ws, 6) < created) break;
+    if (!isWeekComplete(habit, ws)) break;
+    weeks.add(dateStr(ws));
+  }
+  const state = curDone ? 'blaze' : (weeks.size || isWeekInProgress(habit, thisWS)) ? 'smolder' : 'dead';
+  return { freq, state, days, weeks, curWeek: dateStr(thisWS), inPlay: !curDone && state !== 'dead' };
+}
+
+/* data-fire="key|kind" on a streak cell; cells sharing a key form one bar
+   (split wherever the layout breaks: rows, or columns in the 4-month grid). */
+function fireAttrs(info, ds) {
+  const d = `data-d="${ds}"`;   // every cell carries its date, so effects can find the day
+  if (!info) return d;
+  const kind = info.state === 'blaze' ? 'blaze' : 'smolder';
+  if (info.freq === 'daily') return info.days.has(ds) ? `data-fire="s|${kind}" ${d}` : d;
+  const ws = dateStr(getWeekSunday(new Date(ds + 'T00:00:00')));
+  if (info.weeks.has(ws)) return `data-fire="${ws}|${kind}" ${d}`;
+  if (info.inPlay && ws === info.curWeek) return `data-fire="cur|inplay" ${d}`;
+  return d;
+}
+
+/* Lays the bars inside every [data-fire-grid] under root. Positions are
+   measured, so it must run after the grid is visible (it skips hidden ones;
+   expanding a card or opening Edit history calls it again). */
+function fireDecorate(root) {
+  (root || document).querySelectorAll('[data-fire-grid]').forEach(grid => {
+    grid.querySelectorAll(':scope > .fire-run, :scope > .fire-today').forEach(e => e.remove());
+    if (!grid.offsetWidth) return;
+    const style = grid.dataset.fireGrid;
+    const vertical = grid.dataset.fireDir === 'col';
+    const pad = +(grid.dataset.firePad || 3);
+    const g = grid.getBoundingClientRect();
+    const box = el => { const r = el.getBoundingClientRect(); return { l: r.left - g.left, t: r.top - g.top, w: r.width, h: r.height, d: el.dataset.d }; };
+    const groups = new Map();
+    grid.querySelectorAll('[data-fire]').forEach(el => {
+      const k = el.dataset.fire;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(el);
+    });
+    groups.forEach((els, k) => {
+      const kind = k.split('|')[1];
+      const rects = els.map(box).filter(r => r.w > 0)
+        .sort((a, b) => vertical ? (a.l - b.l || a.t - b.t) : (a.t - b.t || a.l - b.l));
+      let seg = [];
+      const flush = () => {
+        if (!seg.length) return;
+        const l = Math.min(...seg.map(r => r.l)), t = Math.min(...seg.map(r => r.t));
+        const rr = Math.max(...seg.map(r => r.l + r.w)), bb = Math.max(...seg.map(r => r.t + r.h));
+        const full = style === 'full' && kind !== 'inplay', pd = full ? 0 : pad;
+        const el = document.createElement('div');
+        el.className = `fire-run ${kind === 'inplay' ? 'fr-inplay' : full ? 'fr-full fr-' + kind : 'fr-faint fr-' + kind}`;
+        el.style.cssText = `left:${l - pd}px;top:${t - pd}px;width:${rr - l + pd * 2}px;height:${bb - t + pd * 2}px`;
+        el.dataset.from = seg[0].d; el.dataset.to = seg[seg.length - 1].d; el.dataset.n = seg.length;
+        if (full) el.innerHTML = '<i></i><i></i>';
+        grid.appendChild(el);
+        seg = [];
+      };
+      rects.forEach(r => {
+        const p = seg[seg.length - 1];
+        const next = p && (vertical
+          ? Math.abs(p.l - r.l) < 1 && r.t - (p.t + p.h) < p.h
+          : Math.abs(p.t - r.t) < 1 && r.l - (p.l + p.w) < p.w);
+        if (!next) flush();
+        seg.push(r);
+      });
+      flush();
+    });
+    if (style === 'full') {   // the fire covers today's ring, so redraw the ring on top
+      const t = grid.querySelector('.today-ring');
+      if (t && grid.querySelector('.fr-full')) {
+        const r = box(t), el = document.createElement('div');
+        el.className = 'fire-today';
+        el.style.cssText = `left:${r.l}px;top:${r.t}px;width:${r.w}px;height:${r.h}px`;
+        grid.appendChild(el);
+      }
+    }
+  });
+}
+let fireResizeT = null;
+window.addEventListener('resize', () => { clearTimeout(fireResizeT); fireResizeT = setTimeout(() => fireDecorate(document), 150); });
+
+/* Log button and log-yesterday button, shared by cards and compact chips. */
+const LOG_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>';
+const LOG_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+const LOG_YDAY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>';
+function logBtnHtml(habit, small) {
+  const L = habitLevel(habit, todayStr()), sz = small ? ' sm' : '';
+  if (habit.type === 'gradient') {
+    // 1–4: a check once logged, with the outline filling a quarter per level; 4 is the solid "done" circle
+    const arc = L > 0 && L < 4 ? `<svg class="log-arc" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18.25" pathLength="100" stroke-dasharray="${L * 25} 100"/></svg>` : '';
+    return `<span class="log-btn scale${sz}${L === 4 ? ' on' : ''}" aria-label="Level ${L} of 4">${arc}${L ? LOG_CHECK : LOG_PLUS}</span>`;
+  }
+  return `<span class="log-btn${sz}${L ? ' on' : ''}">${L ? LOG_CHECK : LOG_PLUS}</span>`;
+}
+/* The yesterday button's own border, filled clockwise from top center by level (1–4 habits). */
+function ydayLevelBorder(L, w, h, r) {
+  const x = .5, y = .5, rw = w - 1, rh = h - 1, rr = r - .5;   // a 1px line centered on the 1px border
+  const per = 2 * (rw + rh) - (8 - 2 * Math.PI) * rr;
+  const startShift = (rw / 2 - rr) / per * 100;   // the rect's path starts at its top-left corner
+  return `<svg class="yday-arc" style="width:${w}px;height:${h}px" viewBox="0 0 ${w} ${h}"><rect x="${x}" y="${y}" width="${rw}" height="${rh}" rx="${rr}" pathLength="100" stroke-dasharray="${L >= 4 ? 'none' : `${L * 25} ${100 - L * 25}`}" stroke-dashoffset="${(-startShift).toFixed(2)}"/></svg>`;
+}
+function ydayBtnHtml(habit, cls) {
+  const L = habitLevel(habit, dateStr(addDays(new Date(), -1)));
+  const scale = habit.type === 'gradient';
+  const compact = cls === 'compact-yday-btn';
+  const border = scale && L ? ydayLevelBorder(L, compact ? 26 : 32, compact ? 18 : 20, 6) : '';
+  const label = !L ? 'Log yesterday' : scale ? `Yesterday: level ${L} of 4` : 'Undo yesterday';
+  return `<button class="${cls}${L ? ' done' : ''}${scale ? ' scale' : ''}" onclick="event.stopPropagation();logHabitDay('${habit.id}','yday')" aria-label="${label}">${border}${L ? LOG_CHECK : LOG_YDAY}</button>`;
+}
+
 const expandedHabits = new Set();
 
 // Compact view collapses every habit into a two-column grid of chips so the
 // whole list is visible at a glance. The choice sticks: whichever view you
 // used last is the one the app opens in.
 let compactMode = !!(data.prefs && data.prefs.compactMode);
+let streaksEnter = true;   // play the cards' fade-in on the next draw only (arriving on the tab)
 
-function toggleCompactMode() {
-  compactMode = !compactMode;
+function setCompactMode(on) {
+  if (compactMode === on) return;
+  compactMode = on;
   if (!data.prefs) data.prefs = {};
   data.prefs.compactMode = compactMode;
   saveData(data);
+  streaksEnter = true;
   renderStreaks();
 }
+function toggleCompactMode() { setCompactMode(!compactMode); }
+const VIEW_ICON_CARDS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/></svg>';
+const VIEW_ICON_COMPACT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="8" height="7" rx="2"/><rect x="13" y="4" width="8" height="7" rx="2"/><rect x="3" y="13" width="8" height="7" rx="2"/><rect x="13" y="13" width="8" height="7" rx="2"/></svg>';
 
 function renderStreaks(opts) {
   const draw = () => {
     const page = document.getElementById('page-streaks');
     const habits = data.streaks.habits;
     page.classList.remove('lv-page-in', 'lv-page-back');
+    page.classList.toggle('st-enter', streaksEnter);
+    streaksEnter = false;
     if (lvAnim) { void page.offsetWidth; page.classList.add(lvAnim === 'in' ? 'lv-page-in' : 'lv-page-back'); lvAnim = null; }
     if (habitPageId) {
       const h = habits.find(x => x.id === habitPageId);
-      if (h) { page.innerHTML = habitPageHtml(h); return; }
+      if (h) { page.innerHTML = habitPageHtml(h); fireDecorate(page); fxKick(); return; }
       habitPageId = null;
     }
 
@@ -3575,7 +4317,10 @@ function renderStreaks(opts) {
             <div class="section-label">Daily streaks</div>
           </div>
           ${habits.length ? `<div class="section-actions">
-            <button class="view-toggle-btn" onclick="toggleCompactMode()">${compactMode ? '▦ Cards' : '▤ Compact'}</button>
+            <div class="view-seg" role="group" aria-label="View">
+              <button class="${compactMode ? '' : 'on'}" onclick="setCompactMode(false)">${VIEW_ICON_CARDS}Cards</button>
+              <button class="${compactMode ? 'on' : ''}" onclick="setCompactMode(true)">${VIEW_ICON_COMPACT}Compact</button>
+            </div>
           </div>` : ''}
         </div>
         ${body}
@@ -3591,6 +4336,8 @@ function renderStreaks(opts) {
       });
       attachStreakDragHandlers(page);
     }
+    fireDecorate(page);
+    fxKick();
   };
   if (opts && opts.raw) draw();
   else withScrollPreserved(draw);
@@ -3623,36 +4370,11 @@ function closeHabitPage() {
   requestAnimationFrame(() => window.scrollTo(0, y));
 }
 
-/* Compact chip's button: a smaller copy of the card's ring button.
-   Plus when not logged, check once logged; gradient habits fill the arc by level. */
-function buildMiniRing(habit, col) {
-  const level = habitLevel(habit, todayStr());
-  const max = habit.type === 'binary' ? 1 : 4;
-  const done = level > 0;
-  const r = 17, cx = 22, c = 2 * Math.PI * r;
-  const off = c * (1 - (done ? Math.min(1, level / max) : 0));
-  const ic = done ? col : 'rgba(255,255,255,0.3)';
-  return `<svg class="compact-ring" viewBox="0 0 44 44" width="26" height="26" fill="none" style="flex-shrink:0" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="${cx}" cy="${cx}" r="${r}" stroke="rgba(255,255,255,0.1)" stroke-width="4"/>
-      <circle cx="${cx}" cy="${cx}" r="${r}" stroke="${col}" stroke-width="4" stroke-linecap="round"
-        stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"
-        transform="rotate(-90 ${cx} ${cx})" style="transition:stroke-dashoffset 0.25s ease"/>
-      ${done
-        ? `<polyline points="14,22.5 20,28.5 30,16" stroke="${ic}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`
-        : `<line x1="22" y1="14" x2="22" y2="30" stroke="${ic}" stroke-width="4" stroke-linecap="round"/>
-           <line x1="14" y1="22" x2="30" y2="22" stroke="${ic}" stroke-width="4" stroke-linecap="round"/>`}
-    </svg>`;
-}
-
 function renderCompactChip(habit) {
   const col = habitColor(habit);
-  const state = habitFlameState(habit);
+  const fire = streakFire(habit);
   const streak = getCurrentStreak(habit);
   const isWeekly = (habit.frequency || 'daily') !== 'daily';
-  const logFn = habit.type === 'binary'
-    ? `toggleBinaryToday('${habit.id}')`
-    : `cycleGradientToday('${habit.id}')`;
-
   let sub;
   if (isWeekly) {
     const wp = weekProgress(habit, (() => { const t = new Date(); t.setHours(0,0,0,0); return t; })());
@@ -3660,25 +4382,27 @@ function renderCompactChip(habit) {
   } else {
     sub = `${streak} ${streak === 1 ? 'day' : 'days'}`;
   }
-
   return `
-    <div class="compact-chip${habitLevel(habit, todayStr()) > 0 ? ' logged' : ''}" onclick="openHabitPage('${habit.id}')" style="--c:${col}">
+    <div class="compact-chip${habitLevel(habit, todayStr()) > 0 ? ' logged' : ''} st-${fire.state}" data-habit-id="${habit.id}" onclick="openHabitPage('${habit.id}')" style="${hexVars(col)}">
       <div class="compact-chip-top">
-        <div class="compact-flame" style="${flameBoxStyle(state, col)}">${flameSvg(flameFill(state, col), 16)}</div>
+        <div class="compact-flame fb fb-${fire.state}">${flameSvg('currentColor', 16)}</div>
         <div class="compact-text">
           <div class="compact-name">${escHtml(habit.name)}</div>
-          <div class="compact-sub" style="color:${state === 'off' ? 'var(--text-dim)' : col}">${sub}</div>
+          <div class="compact-sub">${sub}</div>
         </div>
-        <button class="compact-ring-btn" onclick="event.stopPropagation();${logFn}" aria-label="Log today">${buildMiniRing(habit, col)}</button>
+        <button class="compact-ring-btn" onclick="event.stopPropagation();logHabitDay('${habit.id}','today')" aria-label="Log today">${logBtnHtml(habit, true)}</button>
       </div>
-      <div class="compact-week">${buildCompactWeek(habit, col)}</div>
+      <div class="compact-bot">
+        <div class="compact-week" data-fire-grid="full">${buildCompactWeek(habit, col, fire)}</div>
+        ${ydayBtnHtml(habit, 'compact-yday-btn')}
+      </div>
     </div>
   `;
 }
 
 /* Seven dots for the current week (Sun..Sat), same fill rules as the
    three-week grid on the full card but only the week you're in. */
-function buildCompactWeek(habit, col) {
+function buildCompactWeek(habit, col, fire) {
   const today = new Date();
   const sunday = addDays(today, -today.getDay());
   const freq = habit.frequency || 'daily';
@@ -3703,7 +4427,7 @@ function buildCompactWeek(habit, col) {
     } else if (!isFuture && isRequired && freq === 'weekly') {
       style = `box-shadow:inset 0 0 0 1.5px ${col};opacity:0.55`;
     }
-    html += markWrap(`<div class="${cls}" style="${style}"></div>`, habit, ds, 'c');
+    html += markWrap(`<div class="${cls}" style="${style}"></div>`, habit, ds, 'c', fireAttrs(fire, ds));
   }
   return html;
 }
@@ -3711,8 +4435,7 @@ function buildCompactWeek(habit, col) {
 function renderStreakCard(habit) {
   const col = habitColor(habit);
   const streak = getCurrentStreak(habit);
-  const flameState = habitFlameState(habit);
-  const doneYesterday = isHabitDoneYesterday(habit);
+  const fire = streakFire(habit);
   const todayLevel = habitLevel(habit, todayStr());
 
   // 3 rows (weeks) x 7 cols (Sun=0..Sat=6), oldest week first
@@ -3755,10 +4478,8 @@ function renderStreakCard(habit) {
       // Required but not yet completed — show outline dot in habit color
       style = `border:1.5px solid ${col};opacity:0.6`;
     }
-    return markWrap(`<div class="${cls}" style="${style}"></div>`, habit, dot.ds, 's');
+    return markWrap(`<div class="${cls}" style="${style}"></div>`, habit, dot.ds, 's', fireAttrs(fire, dot.ds));
   }).join('');
-
-  const ringBtn = buildRingBtn(habit, col, todayLevel);
 
   const dowLabels = ['S','M','T','W','T','F','S'].map((d, i) => {
     const freq = habit.frequency || 'daily';
@@ -3770,15 +4491,13 @@ function renderStreakCard(habit) {
   }).join('');
 
   return `
-    <div class="streak-card${todayLevel > 0 ? ' logged' : ''}" data-habit-id="${habit.id}" style="--c:${col}">
+    <div class="streak-card${todayLevel > 0 ? ' logged' : ''} st-${fire.state}" data-habit-id="${habit.id}" style="${hexVars(col)}">
       <div class="streak-card-main" onclick="toggleHabitExpand('${habit.id}')">
         <div class="streak-card-body">
           <div class="streak-left-col">
             <div class="streak-name">${escHtml(habit.name)}</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-              <div class="streak-flame-box" style="${flameBoxStyle(flameState, col)}">
-                ${flameSvg(flameFill(flameState, col), 22)}
-              </div>
+              <div class="streak-flame-box fb fb-${fire.state}">${flameSvg('currentColor', 22)}</div>
               <div class="streak-count-wrap">
                 <div style="display:flex;align-items:baseline;gap:5px">
                   <div class="streak-big-number" style="color:${col}">${streak}</div>
@@ -3812,64 +4531,17 @@ function renderStreakCard(habit) {
           <div style="flex:1"></div>
           <div class="streak-dot-section">
             <div class="streak-dow-labels">${dowLabels}</div>
-            <div class="streak-dot-grid">${dotHtml}</div>
+            <div class="streak-dot-grid" data-fire-grid="faint">${dotHtml}</div>
           </div>
           <div class="streak-controls">
             <button class="streak-dots-btn" onclick="event.stopPropagation();openHabitAction('${habit.id}')" aria-label="Habit options">⋮</button>
-            <button class="streak-ring-btn"
-              onclick="event.stopPropagation();${habit.type === 'binary' ? `toggleBinaryToday('${habit.id}')` : `cycleGradientToday('${habit.id}')`}"
-              aria-label="Log today">${ringBtn}</button>
-            <button class="streak-yday-btn ${doneYesterday ? 'done' : ''}"
-              onclick="event.stopPropagation();markYesterday('${habit.id}')"
-              aria-label="Log yesterday">
-              ${doneYesterday
-                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>`
-              }
-            </button>
+            <button class="streak-ring-btn" onclick="event.stopPropagation();logHabitDay('${habit.id}','today')" aria-label="Log today">${logBtnHtml(habit)}</button>
+            ${ydayBtnHtml(habit, 'streak-yday-btn')}
           </div>
         </div>
       </div>
       ${renderStreakAnalytics(habit)}
     </div>
-  `;
-}
-
-function buildRingBtn(habit, col, level) {
-  const maxLevel = habit.type === 'binary' ? 1 : 4;
-  const done = level > 0;
-  const r = 18;
-  const cx = 22, cy = 22;
-  const circumference = 2 * Math.PI * r;
-  const fillFraction = done ? level / maxLevel : 0;
-  const dashArray = circumference;
-  const dashOffset = circumference * (1 - fillFraction);
-
-  // Track ring (background)
-  const trackCol = 'rgba(255,255,255,0.1)';
-  // Inner icon
-  const iconColor = done ? col : 'rgba(255,255,255,0.3)';
-
-  return `
-    <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- track -->
-      <circle cx="${cx}" cy="${cy}" r="${r}" stroke="${trackCol}" stroke-width="3"/>
-      <!-- progress arc -->
-      <circle cx="${cx}" cy="${cy}" r="${r}"
-        stroke="${col}"
-        stroke-width="3"
-        stroke-linecap="round"
-        stroke-dasharray="${dashArray.toFixed(2)}"
-        stroke-dashoffset="${dashOffset.toFixed(2)}"
-        transform="rotate(-90 ${cx} ${cy})"
-        style="transition:stroke-dashoffset 0.3s ease"/>
-      <!-- inner check or plus -->
-      ${done
-        ? `<polyline points="14,22 20,28 30,16" stroke="${iconColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
-        : `<line x1="22" y1="15" x2="22" y2="29" stroke="${iconColor}" stroke-width="2.5" stroke-linecap="round"/>
-           <line x1="15" y1="22" x2="29" y2="22" stroke="${iconColor}" stroke-width="2.5" stroke-linecap="round"/>`
-      }
-    </svg>
   `;
 }
 
@@ -3904,6 +4576,7 @@ function renderStreakAnalytics(habit) {
         the ‹ › pager (the heatmap and trend chart do). ── */
   const end = statsEndDate(habit, hs, today);
   const created = habitStart(habit);
+  const fire = streakFire(habit);
   let statsHtml;
 
   if (freq === 'daily') {
@@ -4026,7 +4699,7 @@ function renderStreakAnalytics(habit) {
       } else if (!isFuture && hIsRequired) {
         style = `border:1.5px solid ${col};opacity:0.6`;
       }
-      dotsHtml += markWrap(`<div class="${cls}" style="${style}"></div>`, habit, ds, 'h');
+      dotsHtml += markWrap(`<div class="${cls}" style="${style}"></div>`, habit, ds, 'h', fireAttrs(fire, ds));
     }
     weekCols.push(dotsHtml);
   }
@@ -4069,7 +4742,7 @@ function renderStreakAnalytics(habit) {
       </div>
       <div class="gh-heatmap-outer">
         <div class="gh-heatmap-dow-labels">${dowLabelsHtml}</div>
-        <div class="gh-heatmap-grid">${weekColsHtml}</div>
+        <div class="gh-heatmap-grid" data-fire-grid="faint" data-fire-dir="col" data-fire-pad="1.5">${weekColsHtml}</div>
       </div>`}
       <div style="margin-top:14px">
         <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Adherence trend</div>
@@ -4242,82 +4915,38 @@ function toggleHabitExpand(habitId) {
     expandedHabits.add(habitId);
   }
   const card = document.querySelector(`.streak-card[data-habit-id="${habitId}"]`);
-  if (card) card.classList.toggle('expanded', expandedHabits.has(habitId));
+  if (card) { card.classList.toggle('expanded', expandedHabits.has(habitId)); fireDecorate(card); }
 }
 
-function toggleBinaryToday(habitId) {
+/* Log today or yesterday. Binary habits toggle; 1–4 habits step
+   0 → 1 → 2 → 3 → 4 → 0. Plays the streak effects after redrawing. */
+function logHabitDay(habitId, which) {
+  if (dragState) return;
   const habit = data.streaks.habits.find(h => h.id === habitId);
   if (!habit) return;
-  const ds = todayStr();
-  const idx = habit.history.indexOf(ds);
-  if (idx >= 0) habit.history.splice(idx, 1);
-  else habit.history.push(ds);
-  saveData(data);
-  renderStreaks();
-}
-
-function cycleGradientToday(habitId) {
-  const habit = data.streaks.habits.find(h => h.id === habitId);
-  if (!habit) return;
-  const ds = todayStr();
-  const idx = habit.history.findIndex(e => e.date === ds);
-  if (idx < 0) {
-    habit.history.push({ date: ds, level: 1 });
+  const ds = which === 'yday' ? dateStr(addDays(new Date(), -1)) : todayStr();
+  const before = streakFire(habit);
+  const prev = habitLevel(habit, ds);
+  let next;
+  if (habit.type === 'gradient') {
+    next = prev >= 4 ? 0 : prev + 1;
+    const idx = habit.history.findIndex(e => e.date === ds);
+    if (!next) { if (idx >= 0) habit.history.splice(idx, 1); }
+    else if (idx >= 0) habit.history[idx].level = next;
+    else habit.history.push({ date: ds, level: next });
   } else {
-    const cur = habit.history[idx].level;
-    if (cur >= 4) habit.history.splice(idx, 1);
-    else habit.history[idx].level = cur + 1;
-  }
-  saveData(data);
-  renderStreaks();
-}
-
-function markYesterday(habitId) {
-  const habit = data.streaks.habits.find(h => h.id === habitId);
-  if (!habit) return;
-  if (habit.type === 'binary') {
-    const ds = dateStr(addDays(new Date(), -1));
+    next = prev ? 0 : 1;
     const idx = habit.history.indexOf(ds);
-    if (idx >= 0) habit.history.splice(idx, 1);
-    else habit.history.push(ds);
-    saveData(data);
-    renderStreaks();
-  } else {
-    // Open level picker modal
-    openYesterdayModal(habitId);
+    if (idx >= 0) habit.history.splice(idx, 1); else habit.history.push(ds);
   }
+  saveData(data);
+  renderStreaks();
+  fxHabitLogged(habit, ds, which, prev, next, before);
 }
-
-/* ─────────────────────────────────────────────────────
-   YESTERDAY (gradient habits pick a level)
-   ───────────────────────────────────────────────────── */
-let fsYday = null;   // { habitId, ds, level }
-function openYesterdayModal(habitId) {
-  const habit = data.streaks.habits.find(h => h.id === habitId);
-  if (!habit) return;
-  const ds = dateStr(addDays(new Date(), -1));
-  fsYday = { habitId, ds, level: habitLevel(habit, ds) };
-  fsOpen({
-    color: habitColor(habit), eyebrow: habit.name, title: 'Log yesterday',
-    body: '<div id="fsLevels"></div><div class="fs-hint">How well did it go? None clears the day.</div>',
-    onMount: fsRenderYday,
-    onSave: () => {
-      const h = data.streaks.habits.find(x => x.id === fsYday.habitId); if (!h) return;
-      const idx = h.history.findIndex(e => e.date === fsYday.ds);
-      if (fsYday.level === 0) { if (idx >= 0) h.history.splice(idx, 1); }
-      else if (idx >= 0) h.history[idx].level = fsYday.level;
-      else h.history.push({ date: fsYday.ds, level: fsYday.level });
-      saveData(data);
-      renderStreaks();
-    }
-  });
-}
-function fsRenderYday() {
-  document.getElementById('fsLevels').innerHTML = segHtml(
-    [{ v: '0', label: 'None' }, { v: '1', label: '1' }, { v: '2', label: '2' }, { v: '3', label: '3' }, { v: '4', label: '4' }],
-    String(fsYday.level), 'fsPickYday', 'seg-lg');
-}
-function fsPickYday(v) { fsYday.level = Number(v); fsRenderYday(); }
+// Older names, kept so nothing that still calls them breaks.
+function toggleBinaryToday(habitId) { logHabitDay(habitId, 'today'); }
+function cycleGradientToday(habitId) { logHabitDay(habitId, 'today'); }
+function markYesterday(habitId) { logHabitDay(habitId, 'yday'); }
 
 /* ─────────────────────────────────────────────────────
    HABITS — add / edit / delete
@@ -4471,6 +5100,7 @@ function monthCalHtml(habit, offset, mode) {
   const created = habitStart(habit);
   const freq = habit.frequency || 'daily';
   const edit = mode === 'edit';
+  const fire = streakFire(habit);
   let cells = '', done = 0, counted = 0;
   for (let i = 0; i < first.getDay(); i++) cells += '<div class="mc-cell mc-pad"></div>';
   for (let d = 1; d <= nDays; d++) {
@@ -4495,9 +5125,10 @@ function monthCalHtml(habit, offset, mode) {
     // A marked day shows its marker in place of the number, like the other grids.
     const inner = m ? `<span class="mc-mk">${markIconHtml(m)}</span>` : d;
     if (m) cls += ' marked';
+    const fa = fireAttrs(fire, ds);
     cells += edit && !future
-      ? `<button class="${cls}" style="${style}" onclick="historyDotTap('${ds}')" aria-label="${LV_MON[day.getMonth()]} ${d}">${inner}</button>`
-      : `<div class="${cls}" style="${style}">${inner}</div>`;
+      ? `<button class="${cls}" style="${style}" ${fa} onclick="historyDotTap('${ds}')" aria-label="${LV_MON[day.getMonth()]} ${d}">${inner}</button>`
+      : `<div class="${cls}" style="${style}" ${fa}>${inner}</div>`;
   }
   const label = first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const shift = edit ? 'shiftHistoryEditWindow' : `shiftMonthCal.bind(null,'${habit.id}')`;
@@ -4511,13 +5142,13 @@ function monthCalHtml(habit, offset, mode) {
       : `${done} of ${counted} ${freq === 'weekly' ? 'planned days' : 'days'} ${scope}`;
     foot = `<div class="mc-foot">${foot}</div>`;
   }
-  return `<div class="mcal mcal-${mode}" data-habit="${habit.id}" data-mode="${mode}" style="--c:${col}">
+  return `<div class="mcal mcal-${mode}" data-habit="${habit.id}" data-mode="${mode}" style="${hexVars(col)}">
     <div class="heatmap-nav">
       <button class="heatmap-nav-btn" onclick="event.stopPropagation();(${shift})(1)" aria-label="Previous month">&#8249;</button>
       <div class="heatmap-nav-label">${label}</div>
       <button class="heatmap-nav-btn" onclick="event.stopPropagation();(${shift})(-1)" ${offset > 0 ? '' : 'disabled'} aria-label="Next month">&#8250;</button>
     </div>
-    <div class="mc-grid">${dows}${cells}</div>${foot}</div>`;
+    <div class="mc-grid" data-fire-grid="faint">${dows}${cells}</div>${foot}</div>`;
 }
 
 function shiftMonthCal(habitId, dir) {
@@ -4569,6 +5200,7 @@ function openHistoryEdit(habitId) {
   renderHistoryEditHeatmap();
   lockScroll();
   document.getElementById('historyEditModal').classList.add('open');
+  requestAnimationFrame(() => fireDecorate(document.getElementById('historyEditHeatmap')));
 }
 
 function closeHistoryEdit() {
@@ -4594,9 +5226,11 @@ function toggleHistoryDot(ds) {
   if (!historyEditCtx) return;
   const habit = data.streaks.habits.find(h => h.id === historyEditCtx.habitId);
   if (!habit) return;
-  if (habit.type === 'gradient') {
+  if (habit.type === 'gradient') {   // 1–4 habits: each tap steps the day 0 → 1 → 2 → 3 → 4 → 0
     const idx = habit.history.findIndex(e => e.date === ds);
-    if (idx >= 0) habit.history.splice(idx, 1);
+    const cur = idx >= 0 ? habit.history[idx].level : 0;
+    if (cur >= 4) habit.history.splice(idx, 1);
+    else if (idx >= 0) habit.history[idx].level = cur + 1;
     else habit.history.push({ date: ds, level: 1 });
   } else {
     const idx = habit.history.indexOf(ds);
@@ -4611,7 +5245,9 @@ function renderHistoryEditHeatmap() {
   if (!historyEditCtx) return;
   const habit = data.streaks.habits.find(h => h.id === historyEditCtx.habitId);
   if (!habit) return;
-  document.getElementById('historyEditHeatmap').innerHTML = monthCalHtml(habit, historyEditCtx.windowOffset, 'edit');
+  const box = document.getElementById('historyEditHeatmap');
+  box.innerHTML = monthCalHtml(habit, historyEditCtx.windowOffset, 'edit');
+  fireDecorate(box);
 }
 
 /* ─────────────────────────────────────────────────────
@@ -4642,10 +5278,10 @@ function markIconHtml(m) {
 
 // Wrap a dot's HTML with its marker, if it has one. where: 's' card grid,
 // 'h' heatmap, 'c' compact week strip.
-function markWrap(dotHtml, habit, ds, where) {
+function markWrap(dotHtml, habit, ds, where, attrs) {
   const m = habitMark(habit, ds);
-  if (!m) return dotHtml;
-  return `<div class="mk-cell mk-${where}">${dotHtml}<span class="mk-icon">${markIconHtml(m)}</span></div>`;
+  if (!m) return attrs ? dotHtml.replace(/^<div /, `<div ${attrs} `) : dotHtml;
+  return `<div class="mk-cell mk-${where}" ${attrs || ''}>${dotHtml}<span class="mk-icon">${markIconHtml(m)}</span></div>`;
 }
 
 function setHistoryEditMode(mode) {
@@ -4660,7 +5296,9 @@ function syncHistoryEditMode() {
     b.classList.toggle('on', b.dataset.mode === mode));
   document.getElementById('historyEditHint').textContent = mode === 'mark'
     ? 'Tap any day to add or change its marker. Done or not, any day can be marked.'
-    : 'Tap any day to turn it on or off.';
+    : (historyEditCtx && (data.streaks.habits.find(h => h.id === historyEditCtx.habitId) || {}).type === 'gradient')
+      ? 'Tap a day to step it through 1, 2, 3, 4, then off.'
+      : 'Tap any day to turn it on or off.';
 }
 
 function historyDotTap(ds) {
@@ -5612,64 +6250,118 @@ function streakyContextLines() {
 }
 
 /* ─────────────────────────────────────────────────────
-   STREAKY — checklist surfacing
-   Lists he looks at: top-level one-section lists, plus the pinned list
-   even if it has several sections. Other multi-section lists are for
-   things like groceries and stay out of it.
-     • Urgent (overdue, or due today/tomorrow): every day until done.
-     • Everything else: once a week, on the first open of the week
-       (weeks start Sunday), as 3 items picked at random. The picks are
-       pinned for the week, so summoning him shows the same ones.
+   STREAKY — checklist and bucket surfacing
+     • Urgent (overdue, or due today/tomorrow), from ANY checklist list:
+       every day until done.
+     • Random picks happen on "pick days", every 2–3 days, and alternate:
+         checklist pick day → 3 items from the PINNED checklist only
+                              (so grocery lists never come up)
+         bucket pick day    → 2–3 unstarred items from any collection
+       A pick day never has both. Picks are pinned for the day, so a
+       summon shows the same ones. Items he just mentioned sit out for
+       STREAKY_PICK_REST days before they can come up again.
    ───────────────────────────────────────────────────── */
 const STREAKY_CHECK_PICKS = 3;
+const STREAKY_BUCKET_PICKS = [2, 3];          // min, max
+const STREAKY_PICK_GAP = [2, 3];              // days between pick days, min, max
+const STREAKY_PICK_REST = { checklist: 6, bucket: 21 };
 const STREAKY_SOON_DAYS = 1;   // "coming up" = due within this many days (0 = today only)
 
-function streakyChecklistPool() {
+function streakyItemRank(item, today) {
+  let rank = 2, days = null;
+  if (item.deadline) {
+    days = Math.round((new Date(item.deadline + 'T00:00:00') - today) / 86400000);
+    if (days < 0) rank = 0;
+    else if (days <= STREAKY_SOON_DAYS) rank = 1;
+  }
+  return { rank, days };
+}
+
+/* Unchecked items from the given checklist entries (all of them by default). */
+function streakyChecklistPool(entries) {
   const out = [];
-  const sections = (data.checklist && data.checklist.sections) || [];
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const pinnedId = data.checklist.pinned;
-  const flat = [];
-  sections.forEach(section => {
-    if (section.type !== 'folder') flat.push(section);
-    else if (section.id === pinnedId) (section.sections || []).forEach(s => flat.push(s));
+  (entries || (data.checklist && data.checklist.sections) || []).forEach(entry => {
+    lvSecs(entry).forEach(section => (section.items || []).forEach(item => {
+      if (item.checked) return;
+      out.push(Object.assign({ item, section, entry }, streakyItemRank(item, today)));
+    }));
   });
-  flat.forEach(section => (section.items || []).forEach(item => {
-    if (item.checked) return;
-    let rank = 2, days = null;
-    if (item.deadline) {
-      days = Math.round((new Date(item.deadline + 'T00:00:00') - today) / 86400000);
-      if (days < 0) rank = 0;
-      else if (days <= STREAKY_SOON_DAYS) rank = 1;
-    }
-    out.push({ item, section, rank, days });
-  }));
   return out;
 }
 
+/* Overdue / due soon from any list. */
 function streakyUrgentItems() {
   return streakyChecklistPool().filter(p => p.rank < 2)
     .sort((a, b) => a.days - b.days)
     .slice(0, 6);
 }
 
-/* This week's random picks. Drawn on the first call each week, avoiding
-   last week's picks when there's enough to choose from. */
-function streakyWeeklyPicks() {
-  const st = streakyState(), week = weekSundayStr(new Date());
-  const pool = streakyChecklistPool().filter(p => p.rank === 2);
-  let fresh = false;
-  if (!st.checkWeek || st.checkWeek.week !== week) {
-    const last = new Set((st.checkWeek && st.checkWeek.ids) || []);
-    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
-    const unseen = shuffled.filter(p => !last.has(p.item.id));
-    const picks = unseen.concat(shuffled.filter(p => last.has(p.item.id))).slice(0, STREAKY_CHECK_PICKS);
-    st.checkWeek = { week, ids: picks.map(p => p.item.id) };
-    fresh = true;
-    saveData(data);
+/* Random-pick candidates: the pinned checklist only (urgent ones already show). */
+function streakyPinnedPool() {
+  const pinned = lvPinned('checklist');
+  return pinned ? streakyChecklistPool([pinned]).filter(p => p.rank === 2) : [];
+}
+
+/* Unstarred, unshelved bucket items from every collection. */
+function streakyBucketPool() {
+  const out = [];
+  ((data.bucket && data.bucket.sections) || []).forEach(entry => lvSecs(entry).forEach(section =>
+    (section.items || []).forEach(item => { if (!item.checked && !item.shelved) out.push({ item, section, entry }); })));
+  return out;
+}
+
+function streakyRandInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+
+/* Choose ids for one kind, preferring items he hasn't mentioned lately. */
+function streakyDrawPicks(kind) {
+  const st = streakyState(), today = todayStr();
+  const pool = kind === 'checklist' ? streakyPinnedPool() : streakyBucketPool();
+  if (!pool.length) return [];
+  const seen = st.mentioned || {};
+  const n = kind === 'checklist' ? STREAKY_CHECK_PICKS : streakyRandInt(STREAKY_BUCKET_PICKS[0], STREAKY_BUCKET_PICKS[1]);
+  const rested = p => !seen[p.item.id] || streakyDaysBetween(seen[p.item.id], today) >= STREAKY_PICK_REST[kind];
+  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+  let picks = shuffled.filter(rested).slice(0, n);
+  if (picks.length < n) {   // not enough rested items: bring back the least recently mentioned
+    const rest = shuffled.filter(p => !picks.includes(p))
+      .sort((a, b) => (seen[a.item.id] || '').localeCompare(seen[b.item.id] || ''));
+    picks = picks.concat(rest.slice(0, n - picks.length));
   }
-  const ids = st.checkWeek.ids;
-  return { fresh, picks: ids.map(id => pool.find(p => p.item.id === id)).filter(Boolean) };
+  return picks.map(p => p.item.id);
+}
+
+/* Today's picks: { date, kind: 'checklist' | 'bucket' | null, ids }.
+   Decided on the first call of the day and pinned. */
+function streakyTodayPicks() {
+  const st = streakyState(), today = todayStr();
+  if (st.picks && st.picks.date === today) return st.picks;
+  let picks = { date: today, kind: null, ids: [] };
+  if (!st.pickNext || today >= st.pickNext) {
+    const order = st.lastPickKind === 'checklist' ? ['bucket', 'checklist'] : ['checklist', 'bucket'];
+    for (const kind of order) {
+      const ids = streakyDrawPicks(kind);
+      if (ids.length) { picks = { date: today, kind, ids }; break; }
+    }
+    if (picks.kind) {
+      st.lastPickKind = picks.kind;
+      st.pickNext = dateStr(addDays(new Date(), streakyRandInt(STREAKY_PICK_GAP[0], STREAKY_PICK_GAP[1])));
+      if (!st.mentioned) st.mentioned = {};
+      picks.ids.forEach(id => { st.mentioned[id] = today; });
+      const cutoff = dateStr(addDays(new Date(), -120));
+      Object.keys(st.mentioned).forEach(k => { if (st.mentioned[k] < cutoff) delete st.mentioned[k]; });
+    }
+  }
+  st.picks = picks;
+  delete st.checkWeek;   // replaced by pick days (Oct 2026)
+  saveData(data);
+  return picks;
+}
+
+/* "your To-do list", but not "your Groceries List list". */
+function streakyListName(entry) {
+  const n = escHtml(entry ? entry.name : 'to-do');
+  return /list$/i.test(entry ? entry.name : '') ? `your ${n}` : `your ${n} list`;
 }
 
 const STREAKY_CHECK_INTROS = {
@@ -5685,11 +6377,18 @@ const STREAKY_CHECK_INTROS = {
     () => "Due today or tomorrow. Let's get them off your plate.",
     () => "Deadline radar is beeping. These are close."
   ],
-  weekly: [
-    () => "Weekly checklist check-in. I pulled a few at random. Any of these doable this week?",
-    () => "New week, so here's a little sample of your checklist. Check off whatever's done.",
-    () => "I grabbed three things from your lists. Pick one to knock out this week.",
-    () => "Checklist lucky draw! These got picked. Check them off right here when they're done."
+  picks: [
+    list => `I pulled a few things off ${list}. Any of these doable today?`,
+    list => `Here's a little sample from ${list}. Check off whatever's done.`,
+    list => `I grabbed a few from ${list}. Pick one and knock it out.`,
+    list => `Lucky draw from ${list}! These came up. Check them off right here when they're done.`
+  ],
+  bucket: [
+    () => "Remember these? You've wanted to do them for a while.",
+    () => "Don't forget, these are still on your someday list.",
+    () => "Little daydream break. Here's some stuff you've wanted to do.",
+    () => "Bucket list check-in. Any of these feel a little closer than they used to?",
+    () => "You told me you wanted to do these someday. Just making sure someday doesn't forget."
   ]
 };
 function streakyCheckIntro(kind, n) {
@@ -5697,9 +6396,9 @@ function streakyCheckIntro(kind, n) {
   return pool[streakyDraw('check_' + kind, pool.length)](n);
 }
 
-/* The checklist lines for this visit. Urgent every time; weekly picks on
-   the first open of the week (and again on summons that week). */
-function streakyChecklistLines(onDemand) {
+/* The checklist and bucket lines for this visit. Urgent every time; the
+   day's picks (checklist OR bucket, never both) on pick days. */
+function streakyListLines() {
   const lines = [];
   const urgent = streakyUrgentItems();
   if (urgent.length) {
@@ -5707,9 +6406,15 @@ function streakyChecklistLines(onDemand) {
     lines.push({ kind: 'checklist', picks: urgent, mood: late ? 'uncertain' : 'normal',
                  text: late ? streakyCheckIntro('overdue', late) : streakyCheckIntro('soon') });
   }
-  const { fresh, picks } = streakyWeeklyPicks();
-  if (picks.length && (fresh || onDemand)) {
-    lines.push({ kind: 'checklist', picks, mood: 'normal', text: streakyCheckIntro('weekly') });
+  const today = streakyTodayPicks();
+  if (today.kind === 'checklist') {
+    const pool = streakyPinnedPool();
+    const picks = today.ids.map(id => pool.find(p => p.item.id === id)).filter(Boolean);
+    if (picks.length) lines.push({ kind: 'checklist', picks, mood: 'normal', text: streakyCheckIntro('picks', streakyListName(lvPinned('checklist'))) });
+  } else if (today.kind === 'bucket') {
+    const pool = streakyBucketPool();
+    const picks = today.ids.map(id => pool.find(p => p.item.id === id)).filter(Boolean);
+    if (picks.length) lines.push({ kind: 'bucket', picks, mood: 'chill', text: streakyCheckIntro('bucket') });
   }
   return lines;
 }
@@ -5864,8 +6569,9 @@ function buildStreakyDialog(opts) {
   //    streak warning when it applies. See streakyTodayNote().
   streakyContextLines().forEach(o => lines.push({ text: o.text, mood: o.mood }));
 
-  // 5. Checklist: overdue / due-soon items every day; random picks weekly.
-  streakyChecklistLines(!!(opts && opts.onDemand)).forEach(l => lines.push(l));
+  // 5. Checklist + bucket: overdue / due-soon items every day; on pick days,
+  //    random picks from the pinned checklist OR the bucket list (alternating).
+  streakyListLines().forEach(l => lines.push(l));
 
   // 6. Review offer — summoned visits only. The daily greeting stays a
   //    greeting; nobody wants a menu first thing in the morning.
@@ -6024,6 +6730,15 @@ function streakyChecklistRows(picks) {
   }).join('');
 }
 
+/* Bucket picks are just reminders: no star button, nothing to tap. */
+function streakyBucketRows(picks) {
+  return picks.map(p => `
+    <div class="sk-bucket-row" style="--c:${folderColor(p.entry)}">
+      <span class="sk-bucket-star">${LV_STAR}</span>
+      <div class="sk-check-text">${escHtml(p.item.text)}<div class="sk-bucket-tag"><i></i>${escHtml(p.entry.name)}</div></div>
+    </div>`).join('');
+}
+
 function renderStreakyLine() {
   const line = streakyLines[streakyIdx];
   if (!line) { closeStreaky(); return; }
@@ -6041,6 +6756,9 @@ function renderStreakyLine() {
   let extraHtml = '';
   if (line.kind === 'checklist' && line.picks) {
     extraHtml += streakyChecklistRows(line.picks);
+  }
+  if (line.kind === 'bucket' && line.picks) {
+    extraHtml += streakyBucketRows(line.picks);
   }
   if (line.kind === 'offer') {
     const nBuild = STREAKY_HABIT_IDEAS.filter(i => i.law === STREAKY_LAW_BUILD).length;
@@ -6127,6 +6845,7 @@ function streakyToggle(sectionId, itemId, el) {
   item.checked = !item.checked;
   saveData(data);
   el.classList.toggle('done', item.checked);
+  if (item.checked) fxFlare(el.querySelector('.sk-check-box'));
   if (currentTab === 'checklist') renderGoalTab('checklist');
 }
 
